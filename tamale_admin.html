@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tamales de Danely – Admin Menu Manager</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
+  background:linear-gradient(135deg,#667eea,#764ba2);
+  padding:2em;min-height:100vh;
+}
+.container{
+  max-width:1100px;margin:auto;background:#fff;
+  border-radius:1em;box-shadow:0 1em 3em rgba(0,0,0,.3);
+}
+.header{
+  background:linear-gradient(135deg,#FF9C1A,#E65100);
+  color:#fff;padding:2em;text-align:center;
+}
+.content{padding:2em}
+.instructions{
+  background:#f0f7ff;border-left:.3em solid #2196F3;
+  padding:1em;margin-bottom:1.5em;border-radius:.5em;
+}
+textarea{
+  width:100%;min-height:220px;
+  font-family:monospace;font-size:.9em;
+  padding:1em;border-radius:.5em;border:.15em solid #ddd;
+}
+.section-title{margin:1.5em 0 .5em;font-weight:700}
+button{
+  padding:.8em 1.3em;border:none;border-radius:.5em;
+  font-weight:600;cursor:pointer
+}
+.btn{background:#2196F3;color:#fff}
+.btn.secondary{background:#FF9800}
+.btn.success{background:#4CAF50}
+.btn.copy{background:#673AB7;width:100%;margin-top:1em}
+.button-row{display:flex;gap:1em;flex-wrap:wrap;margin:.75em 0}
+
+.output{
+  background:#1e1e1e;color:#d4d4d4;
+  white-space:pre-wrap;border-radius:.5em;
+}
+.note{
+  margin-top:.75em;font-size:.85em;color:#555;
+}
+.hidden{display:none}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🫔 Tamales de Danely</h1>
+    <p>Admin Menu & Code Injector</p>
+  </div>
+
+  <div class="content">
+
+    <div class="instructions">
+      <strong>Workflow:</strong><br>
+      1️⃣ Paste or load <code>tamalesdedanely.html</code><br>
+      2️⃣ Edit menu items below<br>
+      3️⃣ Generate updated HTML<br>
+      4️⃣ Copy & replace your original file
+    </div>
+
+    <!-- INPUT HTML -->
+    <div class="section-title">1️⃣ Existing tamalesdedanely.html</div>
+    <label for="inputHtml" class="section-title">
+      1️⃣ Existing tamalesdedanely.html
+    </label>
+    <textarea
+      id="inputHtml"
+      aria-label="Existing tamales HTML"
+      placeholder="Paste your existing tamalesdedanely.html code here...">
+    </textarea>
+    <div class="button-row">
+      <button class="btn secondary" onclick="pasteFromClipboard()">📋 Paste from Clipboard</button>
+      <button class="btn secondary" onclick="fileInput.click()">📂 Load from File</button>
+      <input type="file" id="fileInput" class="hidden" accept=".html">
+    </div>
+
+    <!-- MENU BUILDER -->
+    <div class="section-title">2️⃣ Menu Items</div>
+    <div id="tamales-container"></div>
+
+    <div class="button-row">
+      <button class="btn success" onclick="addTamaleItem()">➕ Add Item</button>
+      <button class="btn" onclick="generateAndInject()">✨ Generate & Inject Menu</button>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="section-title">3️⃣ Updated tamalesdedanely.html</div>
+      <label for="outputHtml" class="section-title">
+        3️⃣ Updated tamalesdedanely.html
+      </label>
+      <textarea
+        id="outputHtml"
+        class="output"
+        aria-label="Updated tamales HTML"
+        placeholder="Generated HTML will appear here...">
+      </textarea>
+          <button class="btn copy" onclick="copyOutput()">📋 Copy Updated HTML</button>
+    <div class="note">
+      👉 <strong>Final step:</strong> Copy the code above and replace the entire contents of
+      <code>tamalesdedanely.html</code> with it.
+    </div>
+
+  </div>
+</div>
+
+<script>
+let tamaleCount = 0;
+
+function addTamaleItem(){
+  tamaleCount++;
+  const c = document.getElementById('tamales-container');
+  const d = document.createElement('div');
+  d.style.marginBottom = "1em";
+  d.innerHTML = `
+    <input placeholder="id" class="id"><br>
+    <input placeholder="emoji" value="🫔" class="emoji"><br>
+    <input placeholder="Name EN" class="en"><br>
+    <input placeholder="Name ES" class="es"><br>
+    <input placeholder="Desc EN" class="den"><br>
+    <input placeholder="Desc ES" class="des"><br>
+    <input placeholder="Price" type="number" class="price"><hr>
+  `;
+  c.appendChild(d);
+}
+
+function buildTamalesArray(){
+  const items=[...document.querySelectorAll('#tamales-container > div')];
+  return items.map(i=>({
+    id:i.querySelector('.id').value,
+    emoji:i.querySelector('.emoji').value,
+    nameEN:i.querySelector('.en').value,
+    nameES:i.querySelector('.es').value,
+    descEN:i.querySelector('.den').value,
+    descES:i.querySelector('.des').value,
+    pricePerDozen:parseFloat(i.querySelector('.price').value)
+  }));
+}
+
+function generateAndInject(){
+  const html=document.getElementById('inputHtml').value;
+  if(!html.includes('const TAMALES_DATA')){
+    alert('Could not find TAMALES_DATA in HTML');
+    return;
+  }
+
+  const data=buildTamalesArray();
+  const js=`const TAMALES_DATA = ${JSON.stringify(data,null,2)};`;
+
+  const updated=html.replace(
+    /const TAMALES_DATA = [\s\S]*?];/,
+    js
+  );
+
+  document.getElementById('outputHtml').value=updated;
+}
+
+function pasteFromClipboard(){
+  navigator.clipboard.readText().then(t=>{
+    document.getElementById('inputHtml').value=t;
+  });
+}
+
+function copyOutput(){
+  const out=document.getElementById('outputHtml');
+  if(!out.value){alert('Nothing to copy');return;}
+  navigator.clipboard.writeText(out.value);
+  alert('Updated HTML copied! Replace tamalesdedanely.html with it.');
+}
+
+const fileInput = document.getElementById('fileInput');
+
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    document.getElementById('inputHtml').value = reader.result;
+  };
+  reader.readAsText(file);
+});
+
+addTamaleItem();
+</script>
+</body>
+</html>
