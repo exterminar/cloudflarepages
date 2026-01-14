@@ -1,7 +1,4 @@
 {
   "name": "armando",
-  "compatibility_date": "2026-01-14",
-  "assets": {
-    "directory": "./dist"
-    }
+  "compatibility_date": "2026-01-14"
 }
