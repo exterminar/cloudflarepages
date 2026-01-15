@@ -16,37 +16,52 @@
 --cta-text:#FFF0D9;
 --max-width:30em;
 }
+
 body{
 margin:0;
-font-family: Inter, system-ui, -apple-system, Arial;
+font-family: Inter, system-ui, Arial;
 background:linear-gradient(180deg,var(--bg),#FFDDB3);
 display:flex;
 justify-content:center;
-padding:1.25em;
-color:var(--accent-dark);
+padding:1.25em 0.75em;
 }
+
 .screen{
 width:100%;
 max-width:var(--max-width);
 background:#FFF8F0;
 border-radius:1em;
-box-shadow:0 0.5em 1.5em rgba(0,0,0,.15);
-overflow:hidden;
 border:0.375em solid #FFDE9A;
+box-shadow:0 0.5em 1.875em rgba(0,0,0,0.12);
+overflow:hidden;
 }
+
 header{
 padding:1.25em;
 background:linear-gradient(180deg,#FF9C1A,#FFA43B);
-color:white;
+color:#fff;
 position:relative;
 }
+
 header h1{margin:0;font-family:Georgia,serif}
-.lang-toggle{position:absolute;right:1em;top:1em}
-.lang-toggle button{
-background:none;border:1px solid rgba(255,255,255,.4);
-color:white;border-radius:.4em;padding:.3em .5em;
-font-weight:700;cursor:pointer;
+
+.lang-toggle{
+position:absolute;
+top:0.75em;
+right:0.75em;
+display:flex;
+gap:0.375em;
 }
+
+.lang-toggle button{
+background:none;
+border:1px solid rgba(255,255,255,.4);
+color:#fff;
+border-radius:.375em;
+padding:.375em .5em;
+cursor:pointer;
+}
+
 main{padding:1.125em}
 
 .card{
@@ -54,76 +69,66 @@ background:var(--card);
 border-radius:.75em;
 padding:.875em;
 margin-bottom:.75em;
-transition:opacity .25s ease, transform .25s ease;
-}
-.card.is-zero{
-opacity:.45;
-transform:scale(.98);
 }
 
-/* Menu */
 .menu-card{display:flex;gap:.75em;align-items:center}
+
 .tamale-illus{
 font-size:6em;
-border-radius:.75em;
-padding:.25em;
 display:flex;
 align-items:center;
 justify-content:center;
-color:white;
-box-shadow:inset 0 -.25em .5em rgba(0,0,0,.15);
+border-radius:.75em;
+background:
+repeating-linear-gradient(
+135deg,
+rgba(255,255,255,.18) 0,
+rgba(255,255,255,.18) 6px,
+rgba(255,255,255,.08) 6px,
+rgba(255,255,255,.08) 12px
+),
+linear-gradient(180deg,#FFB66B,#FF9E3D);
+color:#fff;
 }
+
 .menu-right{flex:1}
+
 .price{
+font-weight:800;
+margin-top:.375em;
 background:var(--accent-dark);
-color:white;
-padding:.35em .5em;
-border-radius:.5em;
+color:#fff;
 display:inline-block;
-font-weight:800;
-font-size:.8em;
-margin-top:.3em;
+padding:.375em .5em;
+border-radius:.5em;
+font-size:.8125em;
 }
-.qty{
-display:flex;
-align-items:center;
-gap:.5em;
-margin-top:.6em;
-}
+
+.qty{display:flex;gap:.5em;margin-top:.625em;align-items:center}
+
 .qty button{
-width:3em;height:2.6em;
-border-radius:.6em;
-border:1px solid rgba(0,0,0,.08);
-font-size:1.2em;
-font-weight:800;
+width:3em;
+height:2.75em;
+border-radius:.625em;
+border:1px solid rgba(0,0,0,.1);
+background:#fff;
+font-size:1.125em;
+font-weight:700;
 cursor:pointer;
-background:white;
 }
+
 .qty button:disabled{
 opacity:.4;
 cursor:not-allowed;
 }
-.count{min-width:3em;text-align:center;font-weight:800;font-size:1.1em}
-.total{margin-top:.5em;font-weight:800}
 
-/* Grand total */
-#grand-total{
-margin-top:1em;
-font-size:1.25em;
-font-weight:900;
-text-align:center;
-}
+.count{min-width:3.5em;text-align:center;font-weight:800}
 
-/* Buttons */
-.btn{
-width:100%;
-padding:.75em;
-border-radius:.65em;
-border:0;
-font-weight:800;
-cursor:pointer;
+.total{margin-top:.75em;font-weight:800}
+
+.inactive{
+opacity:.45;
 }
-.btn.primary{background:var(--cta);color:var(--cta-text)}
 
 .hidden{display:none!important}
 </style>
@@ -139,125 +144,101 @@ cursor:pointer;
 </div>
 </header>
 
-<main>
+<main id="app">
+
+<section id="home" class="view">
 <div class="card">
 <h3 id="this-week">This Month's Tamales</h3>
 <div id="tamales-container"></div>
-
-<div id="grand-total">
-Grand Total: <span id="grandTotalAmount">$0.00</span>
+<button id="placeOrderBtn" class="btn primary" style="width:100%">Place Order</button>
 </div>
+</section>
 
-<button id="placeOrderBtn" class="btn primary" style="margin-top:.75em">
-Place Order
-</button>
-</div>
 </main>
 </div>
 
 <script>
 const TAMALES_DATA = [
-{
-id:'chicken-green',
-emoji:'🫔',
-nameEN:'Chicken in Green Sauce',
-nameES:'Pollo en Salsa Verde',
-descEN:'Traditional handmade chicken tamales in green sauce.',
-descES:'Tamales tradicionales de pollo en salsa verde.',
-pricePerDozen:30
-},
-{
-id:'chicken-mole',
-emoji:'🫔',
-nameEN:'Chicken in Mole',
-nameES:'Pollo en Mole',
-descEN:'Traditional handmade chicken tamales in mole.',
-descES:'Tamales tradicionales de pollo en mole.',
-pricePerDozen:30
-}
+  { id:'chicken-green', emoji:'🫔', nameEN:'Chicken Green', nameES:'Pollo Verde', pricePerDozen:30 },
+  { id:'chicken-mole', emoji:'🫔', nameEN:'Chicken Mole', nameES:'Pollo Mole', pricePerDozen:30 }
 ];
 
 let LANG = 'en';
 let qty = {};
+
 TAMALES_DATA.forEach(t => qty[t.id] = 0);
 
-/* ---------- Helpers ---------- */
-const formatCurrency = n => `$${n.toFixed(2)}`;
+const dom = {
+container: document.getElementById('tamales-container')
+};
 
-function gradientFromId(id){
-let h=0;for(let c of id)h=c.charCodeAt(0)+((h<<5)-h);
-return `linear-gradient(180deg,
-hsl(${h%360},85%,65%),
-hsl(${(h+35)%360},85%,55%))`;
+function formatCurrency(n){ return `$${n.toFixed(2)}`; }
+
+function updateTamaleState(id){
+const card = document.querySelector(`.card[data-id="${id}"]`);
+const minus = document.querySelector(`.qty-minus[data-id="${id}"]`);
+if(!card || !minus) return;
+
+minus.disabled = qty[id] === 0;
+card.classList.toggle('inactive', qty[id] === 0);
 }
 
-function calculateGrandTotal(){
-let total=0;
-TAMALES_DATA.forEach(t=>total+=qty[t.id]*t.pricePerDozen);
-return total;
-}
-function updateGrandTotal(){
-document.getElementById('grandTotalAmount')
-.textContent = formatCurrency(calculateGrandTotal());
+function updateTamaleQty(id, tamale){
+document.querySelector(`.count[data-id="${id}"]`).textContent = qty[id];
+document.querySelector(`.total-amount[data-id="${id}"]`)
+.textContent = formatCurrency(qty[id] * tamale.pricePerDozen);
+updateTamaleState(id);
 }
 
-/* ---------- Render ---------- */
 function renderHome(){
-const c=document.getElementById('tamales-container');
-c.innerHTML='';
-
-TAMALES_DATA.forEach(t=>{
-const card=document.createElement('div');
-card.className='card';
-if(qty[t.id]===0) card.classList.add('is-zero');
-
-card.innerHTML=`
+dom.container.innerHTML = '';
+TAMALES_DATA.forEach(t => {
+const card = document.createElement('div');
+card.className = 'card';
+card.dataset.id = t.id;
+card.innerHTML = `
 <div class="menu-card">
-<div class="tamale-illus" style="background:${gradientFromId(t.id)}">
-${t.emoji}
-</div>
-<div class="menu-right">
-<div style="font-weight:800;font-size:1.1em">${LANG==='es'?t.nameES:t.nameEN}</div>
-<div style="color:#8C5A2D;font-size:.85em">${LANG==='es'?t.descES:t.descEN}</div>
-<div class="price">${formatCurrency(t.pricePerDozen)} / dozen</div>
+  <div class="tamale-illus">${t.emoji}</div>
+  <div class="menu-right">
+    <strong>${LANG==='es'?t.nameES:t.nameEN}</strong>
+    <div class="price">${formatCurrency(t.pricePerDozen)} / dozen</div>
+    <div class="qty">
+      <button class="qty-minus" data-id="${t.id}">−</button>
+      <div class="count" data-id="${t.id}">${qty[t.id]}</div>
+      <button class="qty-plus" data-id="${t.id}">+</button>
+    </div>
+    <div class="total">Total:
+      <span class="total-amount" data-id="${t.id}">
+        ${formatCurrency(0)}
+      </span>
+    </div>
+  </div>
+</div>`;
+dom.container.appendChild(card);
 
-<div class="qty">
-<button class="minus" data-id="${t.id}" ${qty[t.id]===0?'disabled':''}>−</button>
-<div class="count">${qty[t.id]}</div>
-<button class="plus" data-id="${t.id}">+</button>
-</div>
-
-<div class="total">
-Total: ${formatCurrency(qty[t.id]*t.pricePerDozen)}
-</div>
-</div>
-</div>
-`;
-c.appendChild(card);
+updateTamaleState(t.id);
 });
 
-bindQtyButtons();
-updateGrandTotal();
+document.querySelectorAll('.qty-minus').forEach(btn=>{
+btn.onclick = e=>{
+const id = e.target.dataset.id;
+if(qty[id] > 0){
+qty[id]--;
+updateTamaleQty(id, TAMALES_DATA.find(t=>t.id===id));
 }
-
-function bindQtyButtons(){
-document.querySelectorAll('.minus').forEach(b=>{
-b.onclick=()=>{
-const id=b.dataset.id;
-if(qty[id]>0){qty[id]--;renderHome();}
 };
 });
-document.querySelectorAll('.plus').forEach(b=>{
-b.onclick=()=>{
-const id=b.dataset.id;
-if(qty[id]<20){qty[id]++;renderHome();}
+
+document.querySelectorAll('.qty-plus').forEach(btn=>{
+btn.onclick = e=>{
+const id = e.target.dataset.id;
+if(qty[id] < 20){
+qty[id]++;
+updateTamaleQty(id, TAMALES_DATA.find(t=>t.id===id));
+}
 };
 });
 }
-
-/* ---------- Init ---------- */
-document.getElementById('btn-en').onclick=()=>{LANG='en';renderHome();};
-document.getElementById('btn-es').onclick=()=>{LANG='es';renderHome();};
 
 renderHome();
 </script>
