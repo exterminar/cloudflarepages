@@ -1,848 +1,265 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tamales de Danely</title>
+
 <style>
-/* ---------- Base / Theme (Mexican traditional) ---------- */
 :root{
---bg:#FFEFD5; /* light parchment */
---accent:#E65100; /* burnt orange */
---accent-dark:#7A2B17; /* deep brown/red */
+--bg:#FFEFD5;
+--accent:#E65100;
+--accent-dark:#7A2B17;
 --muted:#8C5A2D;
 --card:#FFF3E6;
 --cta:#A22A18;
 --cta-text:#FFF0D9;
---success:#2E7D32;
 --max-width:30em;
---gap:0.875em;
 }
-html,body{height:100%;}
 body{
 margin:0;
-font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
+font-family: Inter, system-ui, -apple-system, Arial;
 background:linear-gradient(180deg,var(--bg),#FFDDB3);
-color:var(--accent-dark);
 display:flex;
-align-items:flex-start;
 justify-content:center;
-padding:1.25em 0.75em;
+padding:1.25em;
+color:var(--accent-dark);
 }
 .screen{
 width:100%;
 max-width:var(--max-width);
-background:linear-gradient(180deg, #FFF8F0, #FFF3E6);
+background:#FFF8F0;
 border-radius:1em;
-box-shadow:0 0.5em 1.875em rgba(0,0,0,0.12);
+box-shadow:0 0.5em 1.5em rgba(0,0,0,.15);
 overflow:hidden;
 border:0.375em solid #FFDE9A;
 }
 header{
-padding:1.25em 1.125em;
-background:
-linear-gradient(180deg,#FF9C1A,#FFA43B);
-color:var(--card);
+padding:1.25em;
+background:linear-gradient(180deg,#FF9C1A,#FFA43B);
+color:white;
 position:relative;
 }
-header h1{
-margin:0;
-font-family: "Georgia", serif;
-font-size:1.75em;
-letter-spacing:0.02em;
-text-shadow:0 0.0625em 0 rgba(0,0,0,0.12);
-}
-.lang-toggle{
-position:absolute;
-right:0.75em;
-top:0.75em;
-display:flex;
-gap:0.375em;
-align-items:center;
-}
+header h1{margin:0;font-family:Georgia,serif}
+.lang-toggle{position:absolute;right:1em;top:1em}
 .lang-toggle button{
-background:transparent;
-color:var(--card);
-border:0.0625em solid rgba(255,255,255,0.25);
-padding:0.375em 0.5em;
-border-radius:0.375em;
-font-weight:600;
-font-size:0.8125em;
-cursor:pointer;
+background:none;border:1px solid rgba(255,255,255,.4);
+color:white;border-radius:.4em;padding:.3em .5em;
+font-weight:700;cursor:pointer;
 }
-main{
-padding: 1.125em 1.125em 1.75em;
-}
-.hero{
-text-align:center;
-margin-bottom:0.75em;
-}
-.hero h2{
-margin:0.375em 0 0;
-font-size:1.25em;
-}
-.hero p{margin:0.375em 0 0;color:var(--muted);font-size:0.8125em}
-.actions{display:flex;gap:0.75em; justify-content:center; margin-top:0.875em;}
-.btn{
-border:0;
-padding:0.75em 0.875em;
-border-radius:0.625em;
-font-weight:700;
-cursor:pointer;
-box-shadow:0 0.25em 0.625em rgba(0,0,0,0.08);
-}
-.btn.primary{
-background:var(--cta);
-color:var(--cta-text);
-flex:1;
-}
-.btn.ghost{
-background:rgba(255,255,255,0.9);
-color:var(--accent-dark);
-border:0.0625em solid rgba(0,0,0,0.03);
-flex:1;
-}
+main{padding:1.125em}
 
-/* Forms */
 .card{
 background:var(--card);
-border-radius:0.75em;
-padding:0.875em;
-margin-bottom:0.75em;
+border-radius:.75em;
+padding:.875em;
+margin-bottom:.75em;
+transition:opacity .25s ease, transform .25s ease;
 }
-label{display:block;font-size:0.8125em;margin-bottom:0.375em;color:var(--muted);}
-input[type="text"], input[type="email"], input[type="date"], input[type="tel"]{
-width:100%;
-padding:0.625em 0.75em;
-border-radius:0.5em;
-border:0.0625em solid rgba(0,0,0,0.06);
-box-sizing:border-box;
-font-size:0.9375em;
-margin-bottom:0.75em;
-background:#fff;
+.card.is-zero{
+opacity:.45;
+transform:scale(.98);
 }
-.muted{color:var(--muted);font-size:0.8125em}
-.center{text-align:center}
-.small{font-size:0.8125em}
 
-/* Menu card */
-.menu-card{display:flex;gap:0.75em;align-items:center}
+/* Menu */
+.menu-card{display:flex;gap:.75em;align-items:center}
 .tamale-illus{
-  width:auto;
-  height:auto;
-  border-radius:0.75em;
-
-  /* Gradient + corn husk texture */
-  background:
-    repeating-linear-gradient(
-      135deg,
-      rgba(255,255,255,0.18) 0px,
-      rgba(255,255,255,0.18) 6px,
-      rgba(255,255,255,0.08) 6px,
-      rgba(255,255,255,0.08) 12px
-    ),
-    linear-gradient(180deg,#FFB66B,#FF9E3D);
-
-  background-blend-mode: overlay;
-
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#fff;
-  font-weight:700;
-  font-size:7em;
-
-  box-shadow:
-    inset 0 -0.25em 0.625em rgba(0,0,0,0.06),
-    inset 0 0.25em 0.5em rgba(255,255,255,0.25);
+font-size:6em;
+border-radius:.75em;
+padding:.25em;
+display:flex;
+align-items:center;
+justify-content:center;
+color:white;
+box-shadow:inset 0 -.25em .5em rgba(0,0,0,.15);
 }
 .menu-right{flex:1}
-.price{font-weight:800;margin-top:0.375em;color:var(--cta-text);background:var(--accent-dark);display:inline-block;padding:0.375em 0.5em;border-radius:0.5em;font-size:0.8125em}
+.price{
+background:var(--accent-dark);
+color:white;
+padding:.35em .5em;
+border-radius:.5em;
+display:inline-block;
+font-weight:800;
+font-size:.8em;
+margin-top:.3em;
+}
 .qty{
-display:flex;align-items:center;gap:0.5em;margin-top:0.75em;
+display:flex;
+align-items:center;
+gap:.5em;
+margin-top:.6em;
 }
 .qty button{
-width:3em;height:2.75em;border-radius:0.625em;border:0.0625em solid rgba(0,0,0,0.06);
-background:#fff;font-weight:700;font-size:1.125em;cursor:pointer;
+width:3em;height:2.6em;
+border-radius:.6em;
+border:1px solid rgba(0,0,0,.08);
+font-size:1.2em;
+font-weight:800;
+cursor:pointer;
+background:white;
 }
-.qty .count{min-width:3.625em;text-align:center;font-weight:800;font-size:1.125em}
-.total{margin-top:0.75em;font-weight:800;font-size:1.125em;color:var(--accent-dark)}
+.qty button:disabled{
+opacity:.4;
+cursor:not-allowed;
+}
+.count{min-width:3em;text-align:center;font-weight:800;font-size:1.1em}
+.total{margin-top:.5em;font-weight:800}
 
-footer{background:linear-gradient(180deg,#FFDDA9,#FFDE9A);padding:0.625em;text-align:center;font-size:0.8125em;color:var(--accent-dark)}
-.note{font-size:0.75em;color:var(--muted);margin-top:0.5em}
-
-/* Responsive adjustments */
-@media (max-width:420px){
-header h1{font-size:1.5em}
-.tamale-illus{width:auto;height:auto}
+/* Grand total */
+#grand-total{
+margin-top:1em;
+font-size:1.25em;
+font-weight:900;
+text-align:center;
 }
 
-/* tiny utility */
+/* Buttons */
+.btn{
+width:100%;
+padding:.75em;
+border-radius:.65em;
+border:0;
+font-weight:800;
+cursor:pointer;
+}
+.btn.primary{background:var(--cta);color:var(--cta-text)}
+
 .hidden{display:none!important}
-.linkish{background:none;border:none;color:var(--accent-dark);text-decoration:underline;cursor:pointer;padding:0;font-size:0.8125em}
 </style>
 </head>
+
 <body>
-<div class="screen" role="application" aria-label="Danely's Tamales app">
+<div class="screen">
 <header>
 <h1 id="brand">Tamales de Danely</h1>
-<div class="lang-toggle" role="toolbar" aria-label="Language toggle">
+<div class="lang-toggle">
 <button id="btn-en">EN</button>
 <button id="btn-es">ES</button>
 </div>
 </header>
 
-<main id="app">
-
-<!-- HOME / HERO -->
-<section id="home" class="view">
-<div class="hero">
-<h2 id="hero-title">Handmade Tamales Made Every Month</h2>
-<p id="hero-sub">Cash & Pickup only.</p>
-</div>
-
-<div class="actions card" style="padding:0.75em;">
-<button id="goSignUp" class="btn primary">Sign Up</button>
-<button id="goLogin" class="btn ghost">Log In</button>
-</div>
-
+<main>
 <div class="card">
-<h3 id="this-week">This Month's Tamales (Order by Nov 10)</h3>
-<div id="tamales-container">
-<!-- Tamales will be dynamically rendered here -->
-</div>
-<div style="margin-top:0.75em">
-<button id="placeOrderBtn" class="btn primary" style="width:100%">Place Order</button>
-</div>
+<h3 id="this-week">This Month's Tamales</h3>
+<div id="tamales-container"></div>
+
+<div id="grand-total">
+Grand Total: <span id="grandTotalAmount">$0.00</span>
 </div>
 
-<div class="note center">No shipping. Pickup only at Danely's House. Cash only.</div>
-</section>
-
-<!-- SIGN UP -->
-<section id="signup" class="view hidden">
-<div class="card">
-<h3 id="signup-title">Create Account</h3>
-<label for="name" id="label-name">Name</label>
-<input id="name" type="text" placeholder="Full name">
-
-<label for="birthday" id="label-bday">Birthday</label>
-<input id="birthday" type="date">
-
-<label for="email" id="label-email">Email</label>
-<input id="email" type="email" placeholder="you@example.com">
-
-<label for="phone" id="label-phone">Phone</label>
-<input id="phone" type="tel" placeholder="(555) 555-5555">
-
-<div style="display:flex;gap:0.625em;">
-<button id="createAccount" class="btn primary" style="flex:1">Create Account</button>
-<button id="backFromSignup" class="btn ghost" style="flex:1">Back</button>
+<button id="placeOrderBtn" class="btn primary" style="margin-top:.75em">
+Place Order
+</button>
 </div>
-
-<p class="muted small" style="margin-top:0.625em">
-We will send a 6-digit verification code to your email to finish signing up.
-</p>
-</div>
-</section>
-
-<!-- VERIFY -->
-<section id="verify" class="view hidden">
-<div class="card">
-<h3 id="verify-title">Verify Email</h3>
-<p class="muted small" id="sent-to">We sent a 6-digit code to </p>
-<label for="codeInput" id="label-code">Enter code</label>
-<input id="codeInput" type="text" maxlength="6" placeholder="123456">
-<div style="display:flex;gap:0.625em;">
-<button id="submitCode" class="btn primary" style="flex:1">Submit</button>
-<button id="resendCode" class="btn ghost" style="flex:1">Resend</button>
-</div>
-<p id="verify-hint" class="muted small">For this prototype the code is shown on screen after "sending". In production, integrate a server-side email service.</p>
-</div>
-<div style="padding:0 1.125em 1.125em;">
-<button id="backFromVerify" class="linkish">Back</button>
-</div>
-</section>
-
-<!-- LOGIN -->
-<section id="login" class="view hidden">
-<div class="card">
-<h3 id="login-title">Log In</h3>
-<label for="loginEmail" id="label-login-email">Email</label>
-<input id="loginEmail" type="email" placeholder="you@example.com">
-<div style="display:flex;gap:0.625em;">
-<button id="sendLoginCode" class="btn primary" style="flex:1">Send Login Code</button>
-<button id="backFromLogin" class="btn ghost" style="flex:1">Back</button>
-</div>
-<p class="muted small">We will send a 6-digit code to your email to log in.</p>
-</div>
-</section>
-
-<!-- ACCOUNT / ORDERS -->
-<section id="account" class="view hidden">
-<div class="card">
-<h3 id="account-title">My Account</h3>
-<div id="accountInfo" class="muted small"></div>
-</div>
-
-<div class="card">
-<h4>Past Orders</h4>
-<div id="pastOrders" class="muted small">No past orders</div>
-</div>
-
-<div style="padding:0 1.125em 1.125em;">
-<button id="logoutBtn" class="btn ghost" style="width:100%">Log Out</button>
-</div>
-</section>
-
-<!-- CONFIRMATION -->
-<section id="confirm" class="view hidden">
-<div class="card center">
-<h3 id="confirm-title">Order Ready to Send</h3>
-<p id="confirm-summary" class="muted small"></p>
-<div style="display:flex;gap:0.625em;margin-top:0.75em;">
-<button id="sendEmails" class="btn primary" style="flex:1">Send Emails</button>
-<button id="editOrder" class="btn ghost" style="flex:1">Edit</button>
-</div>
-<p class="muted small" style="margin-top:0.625em">This will open your email client with the order prefilled for Danely and a confirmation to you.</p>
-</div>
-</section>
-
 </main>
-
-<footer>
-<div id="footer-text">© 2025 Armando Gomez. All rights reserved.</div>
-</footer>
 </div>
 
 <script>
-/* ---------- Strings for EN / ES ---------- */
-const STRINGS = {
-en: {
-brand: "Tamales by Danely",
-heroTitle: "Different Tamales every month",
-heroSub: "Handmade by Danely. Pay cash only.",
-signUp: "Sign Up",
-logIn: "Log In",
-thisWeek: "This Month's Tamales",
-placeOrder: "Place Order",
-createAccount: "Create Account",
-name: "Name",
-bday: "Birthday",
-email: "Email",
-phone: "Phone",
-verifyTitle: "Verify Email",
-sentTo: "We sent a 6-digit code to",
-submit: "Submit",
-resend: "Resend",
-loginTitle: "Log In",
-sendLoginCode: "Send Login Code",
-accountTitle: "My Account",
-logout: "Log Out",
-confirmTitle: "Order Ready to Send",
-sendEmails: "Send Emails",
-editOrder: "Edit",
-footer: "© 2025 Armando Gomez. All rights reserved.",
-pickup: "Pickup at: Danely's House",
-},
-es: {
-brand: "Tamales de Danely",
-heroTitle: "Tamales diferentes cada mes",
-heroSub: "Hechos a mano por Danely. Solo pago en efectivo.",
-signUp: "Registrarse",
-logIn: "Iniciar sesión",
-thisWeek: "Tamales de este mes",
-placeOrder: "Hacer pedido",
-createAccount: "Crear cuenta",
-name: "Nombre",
-bday: "Fecha de nacimiento",
-email: "Correo electrónico",
-phone: "Teléfono",
-verifyTitle: "Verificar correo",
-sentTo: "Enviamos un código de 6 dígitos a",
-submit: "Enviar",
-resend: "Reenviar",
-loginTitle: "Iniciar sesión",
-sendLoginCode: "Enviar código",
-accountTitle: "Mi cuenta",
-logout: "Cerrar sesión",
-confirmTitle: "Pedido listo para enviar",
-sendEmails: "Enviar correos",
-editOrder: "Editar",
-footer: "© 2025 Armando Gomez. Todos los derechos reservados.",
-pickup: "Recoger en: Casa de Danely",
-}
-};
-
-// TAMALES DATA - Update this array to add/modify available tamales
-// Structure: {id, emoji, nameEN, nameES, descEN, descES, pricePerDozen}
 const TAMALES_DATA = [
-    {
-        id: 'chicken-green',
-        emoji: '🫔',
-        nameEN: 'Chicken in Green Sauce',
-        nameES: 'Pollo en Salsa Verde',
-        descEN: 'Traditional handmade chicken tamales in green sauce.',
-        descES: 'Tamales tradicionales de pollo hechos a mano en salsa verde.',
-        pricePerDozen: 30
-    },
-    {
-        id: 'chicken-mole',
-        emoji: '🫔',
-        nameEN: 'Chicken in Mole',
-        nameES: 'Pollo en Mole',
-        descEN: 'Traditional handmade chicken tamales in mole.',
-        descES: 'Tamales tradicionales de pollo hechos a mano en mole.',
-        pricePerDozen: 30
-    }
-// Add more tamales here as they become available
-// Example:
-// {
-//   id: 'pork-red',
-//   emoji: '🫔',
-//   nameEN: 'Pork in Red Sauce',
-//   nameES: 'Puerco en Salsa Roja',
-//   descEN: 'Savory pork tamales in traditional red sauce.',
-//   descES: 'Tamales de puerco en salsa roja tradicional.',
-//   pricePerDozen: 32
-// },
+{
+id:'chicken-green',
+emoji:'🫔',
+nameEN:'Chicken in Green Sauce',
+nameES:'Pollo en Salsa Verde',
+descEN:'Traditional handmade chicken tamales in green sauce.',
+descES:'Tamales tradicionales de pollo en salsa verde.',
+pricePerDozen:30
+},
+{
+id:'chicken-mole',
+emoji:'🫔',
+nameEN:'Chicken in Mole',
+nameES:'Pollo en Mole',
+descEN:'Traditional handmade chicken tamales in mole.',
+descES:'Tamales tradicionales de pollo en mole.',
+pricePerDozen:30
+}
 ];
 
-// Use in-memory storage instead of localStorage
-let appData = {
-lang: 'en',
-users: [],
-orders: [],
-session: null
-};
-
-let LANG = appData.lang;
-let qty = {}; // Store quantities per tamale ID
-let currentUser = null;
-let currentVerification = null; // stores {email, code}
-let pendingOrder = null;
-
-// Initialize quantities for all tamales
-TAMALES_DATA.forEach(tamale => {
-qty[tamale.id] = 1;
-});
-
-/* ---------- DOM refs ---------- */
-const views = {
-home:document.getElementById('home'),
-signup:document.getElementById('signup'),
-verify:document.getElementById('verify'),
-login:document.getElementById('login'),
-account:document.getElementById('account'),
-confirm:document.getElementById('confirm'),
-};
-
-const dom = {
-btnEn: document.getElementById('btn-en'),
-btnEs: document.getElementById('btn-es'),
-brand: document.getElementById('brand'),
-heroTitle: document.getElementById('hero-title'),
-heroSub: document.getElementById('hero-sub'),
-goSignUp: document.getElementById('goSignUp'),
-goLogin: document.getElementById('goLogin'),
-tamalesContainer: document.getElementById('tamales-container'),
-placeOrderBtn: document.getElementById('placeOrderBtn'),
-goBackFromSignup: document.getElementById('backFromSignup'),
-createAccount: document.getElementById('createAccount'),
-inputs: {
-name: document.getElementById('name'),
-birthday: document.getElementById('birthday'),
-email: document.getElementById('email'),
-phone: document.getElementById('phone'),
-},
-verify: {
-sentTo: document.getElementById('sent-to'),
-codeInput: document.getElementById('codeInput'),
-submitCode: document.getElementById('submitCode'),
-resend: document.getElementById('resendCode'),
-back: document.getElementById('backFromVerify')
-},
-login: {
-email: document.getElementById('loginEmail'),
-sendLoginCode: document.getElementById('sendLoginCode'),
-back: document.getElementById('backFromLogin'),
-},
-accountInfo: document.getElementById('accountInfo'),
-pastOrders: document.getElementById('pastOrders'),
-logoutBtn: document.getElementById('logoutBtn'),
-confirmSummary: document.getElementById('confirm-summary'),
-sendEmails: document.getElementById('sendEmails'),
-editOrder: document.getElementById('editOrder'),
-footerText: document.getElementById('footer-text'),
-};
+let LANG = 'en';
+let qty = {};
+TAMALES_DATA.forEach(t => qty[t.id] = 0);
 
 /* ---------- Helpers ---------- */
-function t(key){
-return STRINGS[LANG][key] || STRINGS.en[key] || key;
-}
-function switchTo(view){
-Object.values(views).forEach(v=>v.classList.add('hidden'));
-views[view].classList.remove('hidden');
-if(view==='home') renderHome();
-if(view==='account') renderAccount();
-if(view==='confirm') renderConfirm();
-}
-
-function formatCurrency(n){ return `$${(n).toFixed(2)}`; }
-
-function saveUserToStorage(user){
-const existing = appData.users.find(u=>u.email===user.email);
-if(existing){
-Object.assign(existing,user);
-} else appData.users.push(user);
-}
-
-function loadUserByEmail(email){
-return appData.users.find(u=>u.email===email) || null;
-}
-
-function saveOrder(order){
-appData.orders.unshift(order);
-}
+const formatCurrency = n => `$${n.toFixed(2)}`;
 
 function gradientFromId(id){
-  // Simple hash from string
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  // Generate two warm hues (Mexican food friendly 🌶️)
-  const hue1 = Math.abs(hash) % 360;
-  const hue2 = (hue1 + 35) % 360;
-
-  return `linear-gradient(
-    180deg,
-    hsl(${hue1}, 85%, 65%),
-    hsl(${hue2}, 85%, 55%)
-  )`;
+let h=0;for(let c of id)h=c.charCodeAt(0)+((h<<5)-h);
+return `linear-gradient(180deg,
+hsl(${h%360},85%,65%),
+hsl(${(h+35)%360},85%,55%))`;
 }
 
+function calculateGrandTotal(){
+let total=0;
+TAMALES_DATA.forEach(t=>total+=qty[t.id]*t.pricePerDozen);
+return total;
+}
+function updateGrandTotal(){
+document.getElementById('grandTotalAmount')
+.textContent = formatCurrency(calculateGrandTotal());
+}
+
+/* ---------- Render ---------- */
 function renderHome(){
-// Render all available tamales
-const container = dom.tamalesContainer;
-container.innerHTML = '';
+const c=document.getElementById('tamales-container');
+c.innerHTML='';
 
-TAMALES_DATA.forEach(tamale => {
-const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
-const descKey = LANG === 'es' ? 'descES' : 'descEN';
-const priceText = LANG === 'es' ? `${formatCurrency(tamale.pricePerDozen)} / docena` : `${formatCurrency(tamale.pricePerDozen)} / dozen`;
-const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-      <div class="menu-card">
-        <div class="tamale-illus"
-             style="--tamale-gradient:${gradientFromId(tamale.id)};
-                    background-image:
-                      repeating-linear-gradient(
-                        135deg,
-                        rgba(255,255,255,0.18) 0px,
-                        rgba(255,255,255,0.18) 6px,
-                        rgba(255,255,255,0.08) 6px,
-                        rgba(255,255,255,0.08) 12px
-                      ),
-                      ${gradientFromId(tamale.id)};">
-          ${tamale.emoji}
-        </div>
-        <div class="menu-right">
-            <div style="font-weight:800;font-size:1.125em">${tamale[nameKey]}</div>
-            <div class="muted">${tamale[descKey]}</div>
-            <div class="price">${priceText}</div>
-            <div class="qty" style="margin-top:0.625em;">
-                <button class="qty-minus" data-id="${tamale.id}" aria-label="Decrease dozens">−</button>
-                <div class="count" data-id="${tamale.id}">${qty[tamale.id]}</div>
-                <button class="qty-plus" data-id="${tamale.id}" aria-label="Increase dozens">+</button>
-            </div>
-            <div class="total">Total: <span class="total-amount" data-id="${tamale.id}">${formatCurrency(qty[tamale.id] * tamale.pricePerDozen)}</span></div>
-        </div>
-      </div>
-    `;
-container.appendChild(card);
+TAMALES_DATA.forEach(t=>{
+const card=document.createElement('div');
+card.className='card';
+if(qty[t.id]===0) card.classList.add('is-zero');
+
+card.innerHTML=`
+<div class="menu-card">
+<div class="tamale-illus" style="background:${gradientFromId(t.id)}">
+${t.emoji}
+</div>
+<div class="menu-right">
+<div style="font-weight:800;font-size:1.1em">${LANG==='es'?t.nameES:t.nameEN}</div>
+<div style="color:#8C5A2D;font-size:.85em">${LANG==='es'?t.descES:t.descEN}</div>
+<div class="price">${formatCurrency(t.pricePerDozen)} / dozen</div>
+
+<div class="qty">
+<button class="minus" data-id="${t.id}" ${qty[t.id]===0?'disabled':''}>−</button>
+<div class="count">${qty[t.id]}</div>
+<button class="plus" data-id="${t.id}">+</button>
+</div>
+
+<div class="total">
+Total: ${formatCurrency(qty[t.id]*t.pricePerDozen)}
+</div>
+</div>
+</div>
+`;
+c.appendChild(card);
 });
 
-// Attach event listeners to quantity buttons
-document.querySelectorAll('.qty-minus').forEach(btn => {
-btn.addEventListener('click', (e) => {
-const id = e.target.dataset.id;
-const tamale = TAMALES_DATA.find(t => t.id === id);
-if(qty[id] > 1) {
-qty[id]--;
-updateTamaleQty(id, tamale);
-}
-});
-});
-
-document.querySelectorAll('.qty-plus').forEach(btn => {
-btn.addEventListener('click', (e) => {
-const id = e.target.dataset.id;
-const tamale = TAMALES_DATA.find(t => t.id === id);
-if(qty[id] < 20) {
-qty[id]++;
-updateTamaleQty(id, tamale);
-}
-});
-});
+bindQtyButtons();
+updateGrandTotal();
 }
 
-function updateTamaleQty(id, tamale){
-document.querySelector(`.count[data-id="${id}"]`).textContent = qty[id].toString();
-const total = qty[id] * tamale.pricePerDozen;
-document.querySelector(`.total-amount[data-id="${id}"]`).textContent = formatCurrency(total);
-}
-
-/* ---------- Init / Lang ---------- */
-function applyLang(){
-dom.brand.textContent = t('brand');
-dom.heroTitle.textContent = t('heroTitle');
-dom.heroSub.textContent = t('heroSub');
-document.getElementById('this-week').textContent = t('thisWeek');
-document.getElementById('placeOrderBtn').textContent = t('placeOrder');
-document.getElementById('signup-title').textContent = t('createAccount');
-document.getElementById('label-name').textContent = t('name');
-document.getElementById('label-bday').textContent = t('bday');
-document.getElementById('label-email').textContent = t('email');
-document.getElementById('label-phone').textContent = t('phone');
-document.getElementById('verify-title').textContent = t('verifyTitle');
-dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification?currentVerification.email:''}`;
-document.getElementById('login-title').textContent = t('loginTitle');
-document.getElementById('account-title').textContent = t('accountTitle');
-document.getElementById('confirm-title').textContent = t('confirmTitle');
-dom.footerText.textContent = t('footer');
-renderHome(); // Re-render tamales with new language
-}
-
-function init(){
-// wire events
-dom.btnEn.addEventListener('click',()=>{LANG='en';appData.lang='en'; applyLang();});
-dom.btnEs.addEventListener('click',()=>{LANG='es';appData.lang='es'; applyLang();});
-
-dom.goSignUp.addEventListener('click', ()=>switchTo('signup'));
-dom.goLogin.addEventListener('click', ()=>switchTo('login'));
-
-dom.placeOrderBtn.addEventListener('click', ()=> {
-// require login
-if(!currentUser){
-alert('Please log in or sign up to place an order.');
-switchTo('login');
-return;
-}
-prepareOrder();
-switchTo('confirm');
-});
-
-dom.createAccount.addEventListener('click', createAccountFlow);
-dom.goBackFromSignup && dom.goBackFromSignup.addEventListener('click', ()=>switchTo('home'));
-dom.verify.submitCode.addEventListener('click', submitVerificationCode);
-dom.verify.resend.addEventListener('click', resendVerification);
-dom.verify.back.addEventListener('click', ()=>switchTo('signup'));
-dom.login.sendLoginCode.addEventListener('click', sendLoginCode);
-dom.login.back.addEventListener('click', ()=>switchTo('home'));
-dom.logoutBtn.addEventListener('click', ()=>{ currentUser=null; appData.session=null; switchTo('home'); });
-dom.sendEmails.addEventListener('click', sendEmailsForOrder);
-dom.editOrder.addEventListener('click', ()=>switchTo('home'));
-
-applyLang();
-renderHome();
-switchTo(currentUser ? 'home' : 'home'); // start on home
-}
-
-/* ---------- Signup flow (prototype) ---------- */
-function createAccountFlow(){
-const name = dom.inputs.name.value.trim();
-const bday = dom.inputs.birthday.value;
-const email = dom.inputs.email.value.trim().toLowerCase();
-const phone = dom.inputs.phone.value.trim();
-
-if(!name||!email){
-alert('Please provide your name and email.');
-return;
-}
-// save basic user
-const user = {name, birthday:bday, email, phone, createdAt: new Date().toISOString()};
-saveUserToStorage(user);
-
-// create verification code and "send" it
-const code = Math.floor(100000 + Math.random() * 900000).toString();
-currentVerification = {email, code, createdAt: Date.now()};
-dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
-// For prototype: show the code in a friendly modal area so tester can continue.
-alert(`(Prototype) Verification code sent: ${code}`);
-// In production: call your server to email ${email} with the code.
-switchTo('verify');
-}
-
-function submitVerificationCode(){
-const entered = dom.verify.codeInput.value.trim();
-if(!currentVerification){
-alert('No verification pending. Please sign up or request a code.');
-return;
-}
-if(entered === currentVerification.code){
-// mark user as logged in
-currentUser = loadUserByEmail(currentVerification.email);
-appData.session = {email:currentUser.email};
-currentVerification = null;
-dom.verify.codeInput.value='';
-alert('Verified! You are now logged in.');
-switchTo('home');
-} else {
-alert('Code incorrect. Try Resend.');
-}
-}
-
-function resendVerification(){
-if(!currentVerification) return alert('No verification in progress.');
-// Generate new code
-const code = Math.floor(100000 + Math.random() * 900000).toString();
-currentVerification.code = code;
-currentVerification.createdAt = Date.now();
-// Show prototype code
-alert(`(Prototype) New verification code: ${code}`);
-dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
-}
-
-/* ---------- Login flow (prototype) ---------- */
-function sendLoginCode(){
-const email = dom.login.email.value.trim().toLowerCase();
-const user = loadUserByEmail(email);
-if(!user) return alert('No account found with that email. Please sign up.');
-const code = Math.floor(100000 + Math.random() * 900000).toString();
-currentVerification = {email, code, createdAt:Date.now()};
-alert(`(Prototype) Login code sent: ${code}`);
-switchTo('verify');
-}
-
-/* ---------- Account render ---------- */
-function renderAccount(){
-if(!currentUser){
-dom.accountInfo.textContent = 'Not logged in';
-dom.pastOrders.textContent = 'No past orders';
-return;
-}
-dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUser.email}<br>${currentUser.phone||''}`;
-const orders = appData.orders.filter(o=>o.email===currentUser.email);
-if(!orders.length) dom.pastOrders.textContent = 'No past orders';
-else {
-dom.pastOrders.innerHTML = orders.map(o=>{
-let itemsText = o.items.map(item => `${item.qty} doz ${item.name}`).join(', ');
-return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total: ${formatCurrency(o.grandTotal)}<br><span class="small muted">${new Date(o.createdAt).toLocaleString()}</span></div>`;
-}).join('');
-}
-}
-
-/* ---------- Ordering ---------- */
-function prepareOrder(){
-if(!currentUser) {
-alert('Please login');
-return;
-}
-
-// Collect all tamales with quantity > 0
-const orderItems = [];
-let grandTotal = 0;
-
-TAMALES_DATA.forEach(tamale => {
-if(qty[tamale.id] > 0) {
-const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
-const itemTotal = qty[tamale.id] * tamale.pricePerDozen;
-orderItems.push({
-id: tamale.id,
-name: tamale[nameKey],
-qty: qty[tamale.id],
-pricePerDozen: tamale.pricePerDozen,
-total: itemTotal
-});
-grandTotal += itemTotal;
-}
-});
-
-if(orderItems.length === 0) {
-alert('Please add at least one dozen tamales to your order.');
-return;
-}
-
-pendingOrder = {
-items: orderItems,
-grandTotal,
-email: currentUser.email,
-name: currentUser.name,
-phone: currentUser.phone,
-createdAt: new Date().toISOString()
+function bindQtyButtons(){
+document.querySelectorAll('.minus').forEach(b=>{
+b.onclick=()=>{
+const id=b.dataset.id;
+if(qty[id]>0){qty[id]--;renderHome();}
 };
-
-// Build summary text
-let summaryText = '';
-orderItems.forEach(item => {
-summaryText += `${item.qty} dozen ${item.name} — ${formatCurrency(item.total)}\n`;
 });
-summaryText += `\nGrand Total: ${formatCurrency(grandTotal)}\n${t('pickup')}`;
-
-dom.confirmSummary.textContent = summaryText;
-}
-
-function renderConfirm(){
-if(!pendingOrder) {
-dom.confirmSummary.textContent = 'No order prepared.';
-} else {
-let summaryText = '';
-pendingOrder.items.forEach(item => {
-summaryText += `${item.qty} dozen ${item.name} — ${formatCurrency(item.total)}\n`;
+document.querySelectorAll('.plus').forEach(b=>{
+b.onclick=()=>{
+const id=b.dataset.id;
+if(qty[id]<20){qty[id]++;renderHome();}
+};
 });
-summaryText += `\nGrand Total: ${formatCurrency(pendingOrder.grandTotal)}\n${t('pickup')}`;
-dom.confirmSummary.textContent = summaryText;
-}
 }
 
-/* ---------- Email sending (mailto prototype) ---------- */
-function sendEmailsForOrder(){
-if(!pendingOrder) return alert('No order to send.');
-// Save order locally
-saveOrder(pendingOrder);
+/* ---------- Init ---------- */
+document.getElementById('btn-en').onclick=()=>{LANG='en';renderHome();};
+document.getElementById('btn-es').onclick=()=>{LANG='es';renderHome();};
 
-// Build order details for email
-let orderDetails = '';
-pendingOrder.items.forEach(item => {
-orderDetails += `${item.name}: ${item.qty} dozen @ ${formatCurrency(item.pricePerDozen)}/dozen = ${formatCurrency(item.total)}\n`;
-});
-
-// Build email to Danely
-const danelyEmail = 'danely@live.com'; // <-- REPLACE with Danely's real email
-const subjectToDanely = encodeURIComponent(`New Order of Tamales from ${pendingOrder.name}`);
-const bodyToDanely = encodeURIComponent(
-`New order received:\n\nName: ${pendingOrder.name}\nEmail: ${pendingOrder.email}\nPhone: ${pendingOrder.phone || 'N/A'}\n\nORDER:\n${orderDetails}\nGRAND TOTAL: ${formatCurrency(pendingOrder.grandTotal)}\n\nPickup: Danely's House\nPayment: Cash only`
-);
-
-// Build confirmation email to user
-const subjectToCustomer = encodeURIComponent(`Your Order of Tamales Confirmation`);
-const bodyToCustomer = encodeURIComponent(
-`Hi ${pendingOrder.name}!\n\nThanks for your order:\n\n${orderDetails}\nGrand Total Due: ${formatCurrency(pendingOrder.grandTotal)} (Cash at pickup)\nPickup at: Danely's House\n\nSee you soon!`
-);
-
-// Open Danely email in user's default mail client (mailto)
-const mailtoDanely = `mailto:${danelyEmail}?subject=${subjectToDanely}&body=${bodyToDanely}`;
-const mailtoCustomer = `mailto:${pendingOrder.email}?subject=${subjectToCustomer}&body=${bodyToCustomer}`;
-
-// open both (this will prompt user's mail client; some browsers open only 1, so we attempt both)
-window.location.href = mailtoDanely;
-setTimeout(()=> {
-// try customer mail shortly after
-window.location.href = mailtoCustomer;
-}, 600);
-
-alert('An email composer to Danely (and a confirmation to you) should open in your mail application. In production, replace this with a server-side email sender so messages are delivered automatically.');
-// clear pending
-pendingOrder = null;
-switchTo('home');
-}
-
-// Initialize app
-init();
+renderHome();
 </script>
-
 </body>
 </html>
