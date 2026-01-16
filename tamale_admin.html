@@ -146,6 +146,17 @@ button {
   gap: 0.5em;
 }
 
+.btn-import {
+  background: #9C27B0;
+  color: white;
+  flex: 1;
+}
+
+.btn-import:hover {
+  background: #7B1FA2;
+  transform: translateY(-0.125em);
+}
+
 .btn-add {
   background: #4CAF50;
   color: white;
@@ -275,9 +286,12 @@ button {
     <div class="instructions">
       <strong>📝 Instructions:</strong> Fill in the details for each tamale menu item below. The first item is pre-filled with example data. Click "Add Another Item" to add more tamales, then "Generate Code" to create the JavaScript array.
     </div>
-
+    <div class="button-group" style="margin-bottom: 1.5em;">
+      <button class="btn-import" onclick="importFromHTML()">
+        📥 Import from index.html
+      </button>
+    </div>
     <div id="tamales-container"></div>
-
     <div class="button-group">
       <button class="btn-add" onclick="addTamaleItem(false)">
         ➕ Add Another Item
@@ -525,6 +539,60 @@ function copyToClipboard() {
 
 // Initialize with one example item
 addTamaleItem(true);
+
+async function importFromHTML() {
+  try {
+    const response = await fetch('index.html');
+    if (!response.ok) {
+      throw new Error('Could not load index.html');
+    }
+
+    const htmlText = await response.text();
+
+    // Extract TAMALES_DATA array from the HTML
+    const match = htmlText.match(/const TAMALES_DATA = \[([\s\S]*?)\];/);
+
+    if (!match) {
+      alert('Could not find TAMALES_DATA in index.html');
+      return;
+    }
+
+    // Parse the tamales data
+    const dataString = '[' + match[1] + ']';
+    // Clean up the string to make it valid JSON
+    const jsonString = dataString
+      .replace(/(\w+):/g, '"$1":')  // Add quotes around keys
+      .replace(/'/g, '"')           // Replace single quotes with double
+      .replace(/,(\s*[}\]])/g, '$1'); // Remove trailing commas
+
+    const tamales = JSON.parse(jsonString);
+
+    // Clear existing entries
+    document.getElementById('tamales-container').innerHTML = '';
+    tamaleEntries.length = 0;
+
+    // Add each imported tamale
+    tamales.forEach((tamale, index) => {
+      addTamaleItem(false);
+      const entry = tamaleEntries[index];
+
+      entry.id.value = tamale.id;
+      entry.emoji.value = tamale.emoji;
+      entry.nameEN.value = tamale.nameEN;
+      entry.nameES.value = tamale.nameES;
+      entry.descEN.value = tamale.descEN;
+      entry.descES.value = tamale.descES;
+      entry.price.value = tamale.pricePerDozen;
+    });
+
+    alert(`Successfully imported ${tamales.length} tamale item(s) from index.html!`);
+
+  } catch (error) {
+    alert('Error importing from index.html: ' + error.message + '\n\nMake sure index.html is in the same directory.');
+    console.error(error);
+  }
+}
+
 </script>
 
 </body>
