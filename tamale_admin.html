@@ -3,195 +3,529 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tamales de Danely – Admin Menu Manager</title>
-
+<title>Tamales de Danely - Admin Menu Manager</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
-  background:linear-gradient(135deg,#667eea,#764ba2);
-  padding:2em;min-height:100vh;
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
-.container{
-  max-width:1100px;margin:auto;background:#fff;
-  border-radius:1em;box-shadow:0 1em 3em rgba(0,0,0,.3);
-}
-.header{
-  background:linear-gradient(135deg,#FF9C1A,#E65100);
-  color:#fff;padding:2em;text-align:center;
-}
-.content{padding:2em}
-.instructions{
-  background:#f0f7ff;border-left:.3em solid #2196F3;
-  padding:1em;margin-bottom:1.5em;border-radius:.5em;
-}
-textarea{
-  width:100%;min-height:220px;
-  font-family:monospace;font-size:.9em;
-  padding:1em;border-radius:.5em;border:.15em solid #ddd;
-}
-.section-title{margin:1.5em 0 .5em;font-weight:700}
-button{
-  padding:.8em 1.3em;border:none;border-radius:.5em;
-  font-weight:600;cursor:pointer
-}
-.btn{background:#2196F3;color:#fff}
-.btn.secondary{background:#FF9800}
-.btn.success{background:#4CAF50}
-.btn.copy{background:#673AB7;width:100%;margin-top:1em}
-.button-row{display:flex;gap:1em;flex-wrap:wrap;margin:.75em 0}
 
-.output{
-  background:#1e1e1e;color:#d4d4d4;
-  white-space:pre-wrap;border-radius:.5em;
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 2em;
+  min-height: 100vh;
 }
-.note{
-  margin-top:.75em;font-size:.85em;color:#555;
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 1em;
+  box-shadow: 0 1em 3em rgba(0,0,0,0.3);
+  overflow: hidden;
 }
-.hidden{display:none}
+
+.header {
+  background: linear-gradient(135deg, #FF9C1A 0%, #E65100 100%);
+  color: white;
+  padding: 2em;
+  text-align: center;
+}
+
+.header h1 {
+  font-size: 2em;
+  margin-bottom: 0.5em;
+}
+
+.header p {
+  opacity: 0.9;
+  font-size: 0.95em;
+}
+
+.content {
+  padding: 2em;
+}
+
+.instructions {
+  background: #f0f7ff;
+  border-left: 0.25em solid #2196F3;
+  padding: 1em;
+  margin-bottom: 2em;
+  border-radius: 0.5em;
+}
+
+.tamale-item {
+  background: #f9f9f9;
+  border: 0.125em solid #ddd;
+  border-radius: 0.75em;
+  padding: 1.5em;
+  margin-bottom: 1.5em;
+  position: relative;
+}
+
+.tamale-item h3 {
+  color: #E65100;
+  margin-bottom: 1em;
+  font-size: 1.2em;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+label {
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.3em;
+  font-size: 0.9em;
+}
+
+input {
+  padding: 0.75em;
+  border: 0.125em solid #ddd;
+  border-radius: 0.5em;
+  font-size: 1em;
+  transition: border-color 0.3s;
+}
+
+input:focus {
+  outline: none;
+  border-color: #FF9C1A;
+}
+
+.remove-btn {
+  position: absolute;
+  top: 1em;
+  right: 1em;
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 0.5em 1em;
+  border-radius: 0.5em;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9em;
+  transition: background 0.3s;
+}
+
+.remove-btn:hover {
+  background: #d32f2f;
+}
+
+.button-group {
+  display: flex;
+  gap: 1em;
+  margin: 2em 0;
+  flex-wrap: wrap;
+}
+
+button {
+  padding: 0.875em 1.5em;
+  border: none;
+  border-radius: 0.5em;
+  font-weight: 600;
+  font-size: 1em;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.btn-add {
+  background: #4CAF50;
+  color: white;
+  flex: 1;
+}
+
+.btn-add:hover {
+  background: #45a049;
+  transform: translateY(-0.125em);
+}
+
+.btn-clear {
+  background: #ff9800;
+  color: white;
+  flex: 1;
+}
+
+.btn-clear:hover {
+  background: #fb8c00;
+  transform: translateY(-0.125em);
+}
+
+.btn-generate {
+  background: #2196F3;
+  color: white;
+  flex: 2;
+  font-size: 1.1em;
+}
+
+.btn-generate:hover {
+  background: #1976D2;
+  transform: translateY(-0.125em);
+}
+
+.output-section {
+  margin-top: 2em;
+  padding-top: 2em;
+  border-top: 0.125em solid #eee;
+}
+
+.output-section h2 {
+  color: #333;
+  margin-bottom: 1em;
+}
+
+.output-box {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 1.5em;
+  border-radius: 0.5em;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.6;
+  max-height: 400px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.empty-output {
+  color: #888;
+  font-style: italic;
+}
+
+.btn-copy {
+  background: #673AB7;
+  color: white;
+  width: 100%;
+  margin-top: 1em;
+  justify-content: center;
+}
+
+.btn-copy:hover {
+  background: #5e35b1;
+}
+
+.success-message {
+  background: #4CAF50;
+  color: white;
+  padding: 1em;
+  border-radius: 0.5em;
+  margin-top: 1em;
+  display: none;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-1em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 1em;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+  }
+}
 </style>
 </head>
-
 <body>
+
 <div class="container">
   <div class="header">
     <h1>🫔 Tamales de Danely</h1>
-    <p>Admin Menu & Code Injector</p>
+    <p>Admin Menu Manager</p>
   </div>
 
   <div class="content">
-
     <div class="instructions">
-      <strong>Workflow:</strong><br>
-      1️⃣ Paste or load <code>tamalesdedanely.html</code><br>
-      2️⃣ Edit menu items below<br>
-      3️⃣ Generate updated HTML<br>
-      4️⃣ Copy & replace your original file
+      <strong>📝 Instructions:</strong> Fill in the details for each tamale menu item below. The first item is pre-filled with example data. Click "Add Another Item" to add more tamales, then "Generate Code" to create the JavaScript array.
     </div>
 
-    <!-- INPUT HTML -->
-    <div class="section-title">1️⃣ Existing tamalesdedanely.html</div>
-    <label for="inputHtml" class="section-title">
-      1️⃣ Existing tamalesdedanely.html
-    </label>
-    <textarea
-      id="inputHtml"
-      aria-label="Existing tamales HTML"
-      placeholder="Paste your existing tamalesdedanely.html code here...">
-    </textarea>
-    <div class="button-row">
-      <button class="btn secondary" onclick="pasteFromClipboard()">📋 Paste from Clipboard</button>
-      <button class="btn secondary" onclick="fileInput.click()">📂 Load from File</button>
-      <input type="file" id="fileInput" class="hidden" accept=".html">
-    </div>
-
-    <!-- MENU BUILDER -->
-    <div class="section-title">2️⃣ Menu Items</div>
     <div id="tamales-container"></div>
 
-    <div class="button-row">
-      <button class="btn success" onclick="addTamaleItem()">➕ Add Item</button>
-      <button class="btn" onclick="generateAndInject()">✨ Generate & Inject Menu</button>
+    <div class="button-group">
+      <button class="btn-add" onclick="addTamaleItem(false)">
+        ➕ Add Another Item
+      </button>
+      <button class="btn-clear" onclick="clearAll()">
+        🗑️ Clear All
+      </button>
+      <button class="btn-generate" onclick="generateCode()">
+        ✨ Generate Code
+      </button>
     </div>
 
-    <!-- OUTPUT -->
-    <div class="section-title">3️⃣ Updated tamalesdedanely.html</div>
-      <label for="outputHtml" class="section-title">
-        3️⃣ Updated tamalesdedanely.html
-      </label>
-      <textarea
-        id="outputHtml"
-        class="output"
-        aria-label="Updated tamales HTML"
-        placeholder="Generated HTML will appear here...">
-      </textarea>
-          <button class="btn copy" onclick="copyOutput()">📋 Copy Updated HTML</button>
-    <div class="note">
-      👉 <strong>Final step:</strong> Copy the code above and replace the entire contents of
-      <code>tamalesdedanely.html</code> with it.
+    <div class="output-section">
+      <h2>Generated JavaScript Code:</h2>
+      <div class="output-box" id="output">
+        <span class="empty-output">Click "Generate Code" to see the output here...</span>
+      </div>
+      <button class="btn-copy" onclick="copyToClipboard()">
+        📋 Copy to Clipboard
+      </button>
+      <div class="success-message" id="success-message">
+        ✅ Code copied to clipboard! Paste it into your HTML file.
+      </div>
     </div>
-
   </div>
 </div>
 
 <script>
 let tamaleCount = 0;
 
-function addTamaleItem(){
+function addTamaleItem(withExample = false) {
   tamaleCount++;
-  const c = document.getElementById('tamales-container');
-  const d = document.createElement('div');
-  d.style.marginBottom = "1em";
-  d.innerHTML = `
-    <input placeholder="id" class="id"><br>
-    <input placeholder="emoji" value="🫔" class="emoji"><br>
-    <input placeholder="Name EN" class="en"><br>
-    <input placeholder="Name ES" class="es"><br>
-    <input placeholder="Desc EN" class="den"><br>
-    <input placeholder="Desc ES" class="des"><br>
-    <input placeholder="Price" type="number" class="price"><hr>
+  const container = document.getElementById('tamales-container');
+
+  const item = document.createElement('div');
+  item.className = 'tamale-item';
+  item.id = `tamale-${tamaleCount}`;
+
+  const exampleData = withExample ? {
+    id: 'chicken-green',
+    emoji: '🫔',
+    nameEN: 'Chicken in Green Sauce',
+    nameES: 'Pollo en Salsa Verde',
+    descEN: 'Traditional handmade chicken tamales in green sauce.',
+    descES: 'Tamales tradicionales de pollo hechos a mano en salsa verde.',
+    price: '30'
+  } : {
+    id: '',
+    emoji: '🫔',
+    nameEN: '',
+    nameES: '',
+    descEN: '',
+    descES: '',
+    price: ''
+  };
+
+  item.innerHTML = `
+    <h3>Tamale Item #${tamaleCount}</h3>
+    <button class="remove-btn" onclick="removeItem('tamale-${tamaleCount}')">❌ Remove</button>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>ID (lowercase-hyphenated):</label>
+        <input type="text" class="field-id" value="${exampleData.id}" placeholder="e.g., chicken-green">
+      </div>
+      <div class="form-group">
+        <label>Emoji:</label>
+        <input type="text" class="field-emoji" value="${exampleData.emoji}" placeholder="🫔">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Name (English):</label>
+        <input type="text" class="field-nameEN" value="${exampleData.nameEN}" placeholder="Chicken in Green Sauce">
+      </div>
+      <div class="form-group">
+        <label>Name (Spanish):</label>
+        <input type="text" class="field-nameES" value="${exampleData.nameES}" placeholder="Pollo en Salsa Verde">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group full-width">
+        <label>Description (English):</label>
+        <input type="text" class="field-descEN" value="${exampleData.descEN}" placeholder="Traditional handmade...">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group full-width">
+        <label>Description (Spanish):</label>
+        <input type="text" class="field-descES" value="${exampleData.descES}" placeholder="Tamales tradicionales...">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Price per Dozen ($):</label>
+        <input type="number" class="field-price" value="${exampleData.price}" placeholder="30" step="0.01" min="0">
+      </div>
+    </div>
   `;
-  c.appendChild(d);
+
+  container.appendChild(item);
 }
 
-function buildTamalesArray(){
-  const items=[...document.querySelectorAll('#tamales-container > div')];
-  return items.map(i=>({
-    id:i.querySelector('.id').value,
-    emoji:i.querySelector('.emoji').value,
-    nameEN:i.querySelector('.en').value,
-    nameES:i.querySelector('.es').value,
-    descEN:i.querySelector('.den').value,
-    descES:i.querySelector('.des').value,
-    pricePerDozen:parseFloat(i.querySelector('.price').value)
-  }));
-}
-
-function generateAndInject(){
-  const html=document.getElementById('inputHtml').value;
-  if(!html.includes('const TAMALES_DATA')){
-    alert('Could not find TAMALES_DATA in HTML');
-    return;
+function removeItem(itemId) {
+  if (confirm('Remove this tamale item?')) {
+    const item = document.getElementById(itemId);
+    if (item) {
+      item.remove();
+      renumberItems();
+    }
   }
-
-  const data=buildTamalesArray();
-  const js=`const TAMALES_DATA = ${JSON.stringify(data,null,2)};`;
-
-  const updated=html.replace(
-    /const TAMALES_DATA = [\s\S]*?];/,
-    js
-  );
-
-  document.getElementById('outputHtml').value=updated;
 }
 
-function pasteFromClipboard(){
-  navigator.clipboard.readText().then(t=>{
-    document.getElementById('inputHtml').value=t;
+function renumberItems() {
+  const items = document.querySelectorAll('.tamale-item');
+  items.forEach((item, index) => {
+    const h3 = item.querySelector('h3');
+    if (h3) {
+      h3.textContent = `Tamale Item #${index + 1}`;
+    }
   });
 }
 
-function copyOutput(){
-  const out=document.getElementById('outputHtml');
-  if(!out.value){alert('Nothing to copy');return;}
-  navigator.clipboard.writeText(out.value);
-  alert('Updated HTML copied! Replace tamalesdedanely.html with it.');
+function clearAll() {
+  if (confirm('Clear all tamale items? This cannot be undone.')) {
+    document.getElementById('tamales-container').innerHTML = '';
+    document.getElementById('output').innerHTML = '<span class="empty-output">Click "Generate Code" to see the output here...</span>';
+    tamaleCount = 0;
+    addTamaleItem(false);
+  }
 }
 
-const fileInput = document.getElementById('fileInput');
+function generateCode() {
+  const items = document.querySelectorAll('.tamale-item');
 
-fileInput.addEventListener('change', (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
+  if (items.length === 0) {
+    alert('Please add at least one tamale item.');
+    return;
+  }
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    document.getElementById('inputHtml').value = reader.result;
-  };
-  reader.readAsText(file);
-});
+  const tamales = [];
+  let hasError = false;
 
-addTamaleItem();
+  items.forEach((item, index) => {
+    const id = item.querySelector('.field-id').value.trim();
+    const emoji = item.querySelector('.field-emoji').value.trim();
+    const nameEN = item.querySelector('.field-nameEN').value.trim();
+    const nameES = item.querySelector('.field-nameES').value.trim();
+    const descEN = item.querySelector('.field-descEN').value.trim();
+    const descES = item.querySelector('.field-descES').value.trim();
+    const price = item.querySelector('.field-price').value.trim();
+
+    if (!id || !emoji || !nameEN || !nameES || !descEN || !descES || !price) {
+      alert(`Item #${index + 1}: All fields are required.`);
+      hasError = true;
+      return;
+    }
+
+    if (isNaN(price) || parseFloat(price) <= 0) {
+      alert(`Item #${index + 1}: Price must be a valid positive number.`);
+      hasError = true;
+      return;
+    }
+
+    const priceNum = parseFloat(price);
+    tamales.push({
+      id,
+      emoji,
+      nameEN,
+      nameES,
+      descEN,
+      descES,
+      pricePerDozen: priceNum === Math.floor(priceNum) ? Math.floor(priceNum) : priceNum
+    });
+  });
+
+  if (hasError || tamales.length === 0) {
+    return;
+  }
+
+  // Generate JavaScript code
+  let jsCode = 'const TAMALES_DATA = [\n';
+
+  tamales.forEach((tamale, index) => {
+    jsCode += '  {\n';
+    jsCode += `    id: '${tamale.id}',\n`;
+    jsCode += `    emoji: '${tamale.emoji}',\n`;
+    jsCode += `    nameEN: '${tamale.nameEN}',\n`;
+    jsCode += `    nameES: '${tamale.nameES}',\n`;
+    jsCode += `    descEN: '${tamale.descEN}',\n`;
+    jsCode += `    descES: '${tamale.descES}',\n`;
+    jsCode += `    pricePerDozen: ${tamale.pricePerDozen}\n`;
+    jsCode += '  }';
+    jsCode += index < tamales.length - 1 ? ',\n' : '\n';
+  });
+
+  jsCode += '];';
+
+  // Display output
+  const outputDiv = document.getElementById('output');
+  outputDiv.textContent = jsCode;
+  outputDiv.className = 'output-box';
+
+  // Scroll to output
+  outputDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function copyToClipboard() {
+  const output = document.getElementById('output');
+  const text = output.textContent;
+
+  if (!text || text.includes('Click "Generate Code"')) {
+    alert('Please generate code first.');
+    return;
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    const successMsg = document.getElementById('success-message');
+    successMsg.style.display = 'block';
+    setTimeout(() => {
+      successMsg.style.display = 'none';
+    }, 3000);
+  }).catch(err => {
+    // Fallback for older browsers
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+
+    const successMsg = document.getElementById('success-message');
+    successMsg.style.display = 'block';
+    setTimeout(() => {
+      successMsg.style.display = 'none';
+    }, 3000);
+  });
+}
+
+// Initialize with one example item
+addTamaleItem(true);
 </script>
+
 </body>
 </html>
