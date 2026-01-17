@@ -197,6 +197,7 @@ header h1{font-size:1.5em}
 <div class="lang-toggle" role="toolbar" aria-label="Language toggle">
 <button id="btn-en">EN</button>
 <button id="btn-es">ES</button>
+<button id="goAccount" class="hidden" style="margin-left:0.5em" data-i18n="account">Account</button>
 </div>
 </header>
 
@@ -215,7 +216,7 @@ header h1{font-size:1.5em}
 </div>
 
 <div class="card">
-<h3 id="this-week">This Month's Tamales (Order by Jan 22)</h3>
+<h3 id="this-month">This Month's Tamales (Order by Jan 22)</h3>
 <div id="tamales-container">
 <!-- Tamales will be dynamically rendered here -->
 </div>
@@ -332,7 +333,8 @@ heroTitle: "Different Tamales every month",
 heroSub: "Handmade by Danely. Pay cash only.",
 signUp: "Sign Up",
 logIn: "Log In",
-thisWeek: "This Month's Tamales",
+account: "Account",
+thismonth: "This Month's Tamales",
 placeOrder: "Send my order",
 createAccount: "Create Account",
 name: "Name",
@@ -360,7 +362,8 @@ heroTitle: "Tamales diferentes cada mes",
 heroSub: "Hechos a mano por Danely. Solo pago en efectivo.",
 signUp: "Registrarse",
 logIn: "Iniciar sesión",
-thisWeek: "Tamales de este mes",
+account: "Cuenta",
+thismonth: "Tamales de este mes",
 placeOrder: "Envía mi orden",
 createAccount: "Crear cuenta",
 name: "Nombre",
@@ -515,10 +518,13 @@ Object.assign(existing,user);
 // This is the new function to store users to DB
 async function saveUserToStorage(user){
   try {
-    const response = await fetch(`${API_URL}/api/users`, {
+    const response = await fetch(`${API_URL}/api`, {  // Changed from /api/users to /api
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user)
+      body: JSON.stringify({
+        action: 'createUser',
+        ...user
+      })
     });
     const data = await response.json();
     return data;
@@ -538,7 +544,7 @@ return appData.users.find(u=>u.email===email) || null;
 // This is the new function for the login user from DB
 async function loadUserByEmail(email){
   try {
-    const response = await fetch(`${API_URL}/api/users?email=${encodeURIComponent(email)}`);
+    const response = await fetch(`${API_URL}/api?action=getUser&email=${encodeURIComponent(email)}`);  // Changed URL
     const data = await response.json();
     return data.user || null;
   } catch (error) {
@@ -630,7 +636,7 @@ function applyLang(){
 dom.brand.textContent = t('brand');
 dom.heroTitle.textContent = t('heroTitle');
 dom.heroSub.textContent = t('heroSub');
-document.getElementById('this-week').textContent = t('thisWeek');
+document.getElementById('this-month').textContent = t('thismonth');
 document.getElementById('pickup-note').textContent = t('note');
 document.getElementById('placeOrderBtn').textContent = t('placeOrder');
 document.getElementById('signup-title').textContent = t('createAccount');
@@ -643,6 +649,8 @@ dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification?currentVer
 document.getElementById('login-title').textContent = t('loginTitle');
 document.getElementById('account-title').textContent = t('accountTitle');
 document.getElementById('confirm-title').textContent = t('confirmTitle');
+const goAccountBtn = document.getElementById('goAccount');
+if(goAccountBtn) goAccountBtn.textContent = t('account');
 dom.footerText.textContent = t('footer');
 renderHome(); // Re-render tamales with new language
 }
@@ -654,6 +662,10 @@ dom.btnEs.addEventListener('click',()=>{LANG='es';appData.lang='es'; applyLang()
 
 dom.goSignUp.addEventListener('click', ()=>switchTo('signup'));
 dom.goLogin.addEventListener('click', ()=>switchTo('login'));
+
+// ADD THIS LINE:
+const goAccountBtn = document.getElementById('goAccount');
+if(goAccountBtn) goAccountBtn.addEventListener('click', ()=>switchTo('account'));
 
 dom.placeOrderBtn.addEventListener('click', ()=> {
 // require login
@@ -672,8 +684,14 @@ dom.verify.submitCode.addEventListener('click', submitVerificationCode);
 dom.verify.resend.addEventListener('click', resendVerification);
 dom.verify.back.addEventListener('click', ()=>switchTo('signup'));
 dom.login.sendLoginCode.addEventListener('click', sendLoginCode);
+dom.logoutBtn.addEventListener('click', ()=>{
+  currentUser=null;
+  appData.session=null;
+  const goAccountBtn = document.getElementById('goAccount');
+  if(goAccountBtn) goAccountBtn.classList.add('hidden');
+  switchTo('home');
+});
 dom.login.back.addEventListener('click', ()=>switchTo('home'));
-dom.logoutBtn.addEventListener('click', ()=>{ currentUser=null; appData.session=null; switchTo('home'); });
 dom.sendEmails.addEventListener('click', sendEmailsForOrder);
 dom.editOrder.addEventListener('click', ()=>switchTo('home'));
 
@@ -782,10 +800,11 @@ async function submitVerificationCode(){
   }
 
   try {
-    const response = await fetch(`${API_URL}/api/users/verify`, {
+    const response = await fetch(`${API_URL}/api`, {  // Changed URL
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action: 'verifyUser',
         email: currentVerification.email,
         code: entered
       })
@@ -798,6 +817,8 @@ async function submitVerificationCode(){
       appData.session = {email: currentUser.email};
       currentVerification = null;
       dom.verify.codeInput.value='';
+      const goAccountBtn = document.getElementById('goAccount');
+      if(goAccountBtn) goAccountBtn.classList.remove('hidden');
       alert('Verified! You are now logged in.');
       switchTo('home');
     } else {
@@ -831,10 +852,11 @@ async function resendVerification(){
   const code_created_at = Date.now();
 
   try {
-    await fetch(`${API_URL}/api/users/verification`, {
-      method: 'PUT',
+    await fetch(`${API_URL}/api`, {  // Changed URL
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action: 'updateVerification',
         email: currentVerification.email,
         verification_code: code,
         code_created_at: code_created_at
@@ -877,10 +899,11 @@ async function sendLoginCode(){
   const code_created_at = Date.now();
 
   try {
-    await fetch(`${API_URL}/api/users/verification`, {
-      method: 'PUT',
+    await fetch(`${API_URL}/api`, {  // Changed URL
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        action: 'updateVerification',
         email: email,
         verification_code: code,
         code_created_at: code_created_at
