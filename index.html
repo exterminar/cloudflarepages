@@ -341,13 +341,13 @@ We will send a 6-digit verification code to your email to finish signing up.
 /* ---------- Strings for EN / ES ---------- */
 const STRINGS = {
 en: {
-brand: "Tamales by Danely",
+brand: "Tamales de Danely",
 heroTitle: "Different Tamales every month",
 heroSub: "Handmade by Danely. Pay cash only.",
 signUp: "Register",
 logIn: "Log In",
 account: "Account",
-thismonth: "This Month's Tamales",
+thismonth: "This Month's Tamales (Order by Jan 22)",
 placeOrder: "Send my order",
 createAccount: "Create Account",
 back: "Back",
@@ -379,7 +379,7 @@ heroSub: "Hechos a mano por Danely. Solo pago en efectivo.",
 signUp: "Regístrese",
 logIn: "Iniciar Sesión",
 account: "Cuenta",
-thismonth: "Tamales de este mes",
+thismonth: "Tamales de este mes (Haz tu pedido antes del 22 de enero)",
 placeOrder: "Envía mi orden",
 createAccount: "Crear Cuenta",
 back: "Atrás",
@@ -734,10 +734,6 @@ dom.editOrder.addEventListener('click', ()=>switchTo('home'));
 applyLang();
 renderHome();
 switchTo(currentUser ? 'home' : 'home'); // start on home
-}
-
-function updateQty(){
-// This function is no longer needed - replaced by updateTamaleQty
 }
 
 /* ---------- Signup flow (Prototype) ---------- */
