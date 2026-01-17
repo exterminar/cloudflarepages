@@ -418,10 +418,12 @@ const TAMALES_DATA = [
 // },
 ];
 
-// Use in-memory storage instead of localStorage
+// Configuration - Your Pages site URL
+const API_URL = ''; // Empty string for same domain (Pages Functions)
+
+// Use in-memory storage for orders and session only
 let appData = {
 lang: 'en',
-users: [],
 orders: [],
 session: null
 };
@@ -500,15 +502,49 @@ if(view==='confirm') renderConfirm();
 
 function formatCurrency(n){ return `$${(n).toFixed(2)}`; }
 
+// This is the old function that only saved users to memory not DB
+/*
 function saveUserToStorage(user){
 const existing = appData.users.find(u=>u.email===user.email);
 if(existing){
 Object.assign(existing,user);
 } else appData.users.push(user);
 }
+*/
 
+// This is the new function to store users to DB
+async function saveUserToStorage(user){
+  try {
+    const response = await fetch(`${API_URL}/api/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(user)
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error saving user:', error);
+    alert('Error saving user data. Please try again.');
+  }
+}
+
+// This is the old function for the login user only from memory
+/*
 function loadUserByEmail(email){
 return appData.users.find(u=>u.email===email) || null;
+}
+*/
+
+// This is the new function for the login user from DB
+async function loadUserByEmail(email){
+  try {
+    const response = await fetch(`${API_URL}/api/users?email=${encodeURIComponent(email)}`);
+    const data = await response.json();
+    return data.user || null;
+  } catch (error) {
+    console.error('Error loading user:', error);
+    return null;
+  }
 }
 
 function saveOrder(order){
@@ -650,7 +686,8 @@ function updateQty(){
 // This function is no longer needed - replaced by updateTamaleQty
 }
 
-/* ---------- Signup flow (prototype) ---------- */
+/* ---------- Signup flow (Prototype) ---------- */
+/* obsoleted by new Signup flow (production)
 function createAccountFlow(){
 const name = dom.inputs.name.value.trim();
 const bday = dom.inputs.birthday.value;
@@ -674,7 +711,48 @@ alert(`(Prototype) Verification code sent: ${code}`);
 // In production: call your server to send an email to ${email} with the code.
 switchTo('verify');
 }
+*/
 
+/* ---------- Signup flow (Production) ---------- */
+// New account flow function
+async function createAccountFlow(){
+  const name = dom.inputs.name.value.trim();
+  const bday = dom.inputs.birthday.value;
+  const email = dom.inputs.email.value.trim().toLowerCase();
+  const phone = dom.inputs.phone.value.trim();
+
+  if(!name||!email){
+    alert('Please provide your name and email.');
+    return;
+  }
+
+  // Create verification code
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const code_created_at = Date.now();
+
+  // Save user with verification code
+  const user = {
+    name,
+    birthday: bday,
+    email,
+    phone,
+    verification_code: code,
+    code_created_at: code_created_at,
+    createdAt: new Date().toISOString()
+  };
+
+  await saveUserToStorage(user);
+
+  currentVerification = {email, code, createdAt: code_created_at};
+  dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
+
+  // For prototype: show the code
+  alert(`(Prototype) Verification code sent: ${code}`);
+  switchTo('verify');
+}
+
+// Old verification code function just compared with memory
+/*
 function submitVerificationCode(){
 const entered = dom.verify.codeInput.value.trim();
 if(!currentVerification){
@@ -693,7 +771,46 @@ switchTo('home');
 alert('Code incorrect. Try Resend.');
 }
 }
+*/
 
+//New Verification Code function compared with DB
+async function submitVerificationCode(){
+  const entered = dom.verify.codeInput.value.trim();
+  if(!currentVerification){
+    alert('No verification pending. Please sign up or request a code.');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/users/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: currentVerification.email,
+        code: entered
+      })
+    });
+
+    const data = await response.json();
+
+    if(data.success){
+      currentUser = data.user;
+      appData.session = {email: currentUser.email};
+      currentVerification = null;
+      dom.verify.codeInput.value='';
+      alert('Verified! You are now logged in.');
+      switchTo('home');
+    } else {
+      alert('Code incorrect. Try Resend.');
+    }
+  } catch (error) {
+    console.error('Verification error:', error);
+    alert('Error verifying code. Please try again.');
+  }
+}
+
+// Old resend verification code function only showing from memory
+/*
 function resendVerification(){
 if(!currentVerification) return alert('No verification in progress.');
 // Generate new code
@@ -704,8 +821,39 @@ currentVerification.createdAt = Date.now();
 alert(`(Prototype) New verification code: ${code}`);
 dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
 }
+*/
 
+// New resend verification code function showing from DB
+async function resendVerification(){
+  if(!currentVerification) return alert('No verification in progress.');
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const code_created_at = Date.now();
+
+  try {
+    await fetch(`${API_URL}/api/users/verification`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: currentVerification.email,
+        verification_code: code,
+        code_created_at: code_created_at
+      })
+    });
+
+    currentVerification.code = code;
+    currentVerification.createdAt = code_created_at;
+    alert(`(Prototype) New verification code: ${code}`);
+    dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
+  } catch (error) {
+    console.error('Error resending code:', error);
+    alert('Error resending code. Please try again.');
+  }
+}
+
+// Obsoleted
 /* ---------- Login flow (prototype) ---------- */
+/*
 function sendLoginCode(){
 const email = dom.login.email.value.trim().toLowerCase();
 const user = loadUserByEmail(email);
@@ -715,8 +863,42 @@ currentVerification = {email, code, createdAt:Date.now()};
 alert(`(Prototype) Login code sent: ${code}`);
 switchTo('verify');
 }
+*/
 
+//New
+/* ---------- Login flow (Production) ---------- */
+async function sendLoginCode(){
+  const email = dom.login.email.value.trim().toLowerCase();
+  const user = await loadUserByEmail(email);
+
+  if(!user) return alert('No account found with that email. Please sign up.');
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const code_created_at = Date.now();
+
+  try {
+    await fetch(`${API_URL}/api/users/verification`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: email,
+        verification_code: code,
+        code_created_at: code_created_at
+      })
+    });
+
+    currentVerification = {email, code, createdAt: code_created_at};
+    alert(`(Prototype) Login code sent: ${code}`);
+    switchTo('verify');
+  } catch (error) {
+    console.error('Error sending login code:', error);
+    alert('Error sending login code. Please try again.');
+  }
+}
+
+// Old Account render function only from memory
 /* ---------- Account render ---------- */
+/*
 function renderAccount(){
 if(!currentUser){
 dom.accountInfo.textContent = 'Not logged in';
@@ -732,6 +914,33 @@ let itemsText = o.items.map(item => `${item.qty} doz ${item.name}`).join(', ');
 return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total: ${formatCurrency(o.grandTotal)}<br><span class="small muted">${new Date(o.createdAt).toLocaleString()}</span></div>`;
 }).join('');
 }
+}
+*/
+
+// New Account render function from DB
+/* ---------- Account render ---------- */
+async function renderAccount(){
+  if(!currentUser){
+    dom.accountInfo.textContent = 'Not logged in';
+    dom.pastOrders.textContent = 'No past orders';
+    return;
+  }
+
+  // Fetch fresh user data from database
+  const freshUser = await loadUserByEmail(currentUser.email);
+  if(freshUser) {
+    currentUser = freshUser; // Update with latest data
+  }
+
+  dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUser.email}<br>${currentUser.phone||''}`;
+  const orders = appData.orders.filter(o=>o.email===currentUser.email);
+  if(!orders.length) dom.pastOrders.textContent = 'No past orders';
+  else {
+    dom.pastOrders.innerHTML = orders.map(o=>{
+      let itemsText = o.items.map(item => `${item.qty} doz ${item.name}`).join(', ');
+      return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total: ${formatCurrency(o.grandTotal)}<br><span class="small muted">${new Date(o.createdAt).toLocaleString()}</span></div>`;
+    }).join('');
+  }
 }
 
 /* ---------- Ordering ---------- */

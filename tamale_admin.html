@@ -558,7 +558,17 @@ async function importFromHTML() {
     }
 
     // Parse the tamales data
-    const dataString = '[' + match[1] + ']';
+    let dataString = match[1];
+
+    // Remove single-line comments (// ...)
+    dataString = dataString.replace(/\/\/.*$/gm, '');
+
+    // Remove multi-line comments (/* ... */)
+    dataString = dataString.replace(/\/\*[\s\S]*?\*\//g, '');
+
+    // Wrap in array brackets
+    dataString = '[' + dataString + ']';
+
     // Clean up the string to make it valid JSON
     const jsonString = dataString
       .replace(/(\w+):/g, '"$1":')  // Add quotes around keys
@@ -567,14 +577,15 @@ async function importFromHTML() {
 
     const tamales = JSON.parse(jsonString);
 
-    // Clear existing entries
-    document.getElementById('tamales-container').innerHTML = '';
-    tamaleEntries.length = 0;
+// Clear existing entries
+    const container = document.getElementById('tamales-container');
+    container.innerHTML = '';
+    this.tamaleEntries = [];
 
-    // Add each imported tamale
-    tamales.forEach((tamale, index) => {
+// Add each imported tamale
+    tamales.forEach((tamale) => {
       addTamaleItem(false);
-      const entry = tamaleEntries[index];
+      const entry = this.tamaleEntries[this.tamaleEntries.length - 1];
 
       entry.id.value = tamale.id;
       entry.emoji.value = tamale.emoji;
