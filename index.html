@@ -295,11 +295,13 @@ We will send a 6-digit verification code to your email to finish signing up.
 <h3 id="login-title">Log In</h3>
 <label for="loginEmail" id="label-login-email">Email</label>
 <input id="loginEmail" type="email" placeholder="you@example.com">
+<label for="loginBday" id="label-login-bday">Birthday</label>
+<input id="loginBday" type="date">
 <div style="display:flex;gap:0.625em;">
-<button id="sendLoginCode" class="btn primary" style="flex:1">Send Log In Code</button>
+<button id="loginButton" class="btn primary" style="flex:1">Log In</button>
 <button id="backFromLogin" class="btn ghost" style="flex:1">Back</button>
 </div>
-<p class="muted small" id="login-hint">We will send a 6-digit code to your email to log in.</p>
+<p class="muted small" id="login-hint">Enter your email and birthday to log in.</p>
 </div>
 </section>
 
@@ -323,14 +325,14 @@ We will send a 6-digit verification code to your email to finish signing up.
 
 <!-- CONFIRMATION -->
 <section id="confirm" class="view hidden">
-<div class="card center">
-<h3 id="confirm-title">Order Ready to Send</h3>
-<p id="confirm-summary" class="muted small"></p>
-<div style="display:flex;gap:0.625em;margin-top:0.75em;">
-<button id="sendEmails" class="btn primary" style="flex:1">Send Emails</button>
-<button id="editOrder" class="btn ghost" style="flex:1">Edit</button>
+<div class="card">
+<h3 id="confirm-title" class="center">Order Summary</h3>
+<div id="confirm-summary" style="margin-top:1em"></div>
+<div style="display:flex;gap:0.625em;margin-top:1em;">
+<button id="placeOrderBtn2" class="btn primary" style="flex:1">Place Order</button>
+<button id="modifyOrder" class="btn ghost" style="flex:1">Modify Order</button>
 </div>
-<p class="muted small" style="margin-top:0.625em">This will open your email client with the order prefilled for Danely and a confirmation to you.</p>
+<p class="muted small center" id="confirm-hint" style="margin-top:0.75em">This will open your email client with the order prefilled for Danely and a confirmation to you.</p>
 </div>
 </section>
 
@@ -353,7 +355,7 @@ logIn: "Log In",
 account: "Account",
 loggedInAs: "Logged in as:",
 thismonth: "This Month's Tamales (Order by Jan 22)",
-placeOrder: "Send my order",
+placeOrder: "Place Order",
 createAccount: "Create Account",
 back: "Back",
 name: "Name",
@@ -365,19 +367,29 @@ sentTo: "We sent a 6-digit code to",
 submit: "Submit",
 resend: "Resend",
 loginTitle: "Log In",
-sendLoginCode: "Send Log In Code",
-loginHint: "We will send a 6-digit code to your email to log in.",
+loginEmailLabel: "Email",
+loginBdayLabel: "Birthday",
+loginButton: "Log In",
+loginHint: "Enter your email and birthday to log in.",
 accountTitle: "My Account",
 pastOrders: "Past Orders",
 noPastOrders: "No past orders",
 backToMenu: "Back to Menu",
 logout: "Log Out",
-confirmTitle: "Order Ready to Send",
-sendEmails: "Send Emails",
-editOrder: "Edit",
+confirmTitle: "Order Summary",
+placeOrderBtn: "Place Order",
+modifyOrder: "Modify Order",
+confirmHint: "This will open your email client with the order prefilled for Danely and a confirmation to you.",
 note: "No shipping. Pickup only at Danely's House. Cash only.",
 footer: "© 2025 Armando Gomez. All rights reserved.",
 pickup: "Pickup at: Danely's House",
+orderSummary: "Order Summary",
+item: "Item",
+quantity: "Quantity",
+price: "Price",
+subtotal: "Subtotal",
+total: "Total",
+dozen: "dozen",
 },
 es: {
 brand: "Tamales de Danely",
@@ -388,7 +400,7 @@ logIn: "Iniciar Sesión",
 account: "Cuenta",
 loggedInAs: "Conectado como:",
 thismonth: "Tamales de este mes (Ordena antes del 22 de Enero)",
-placeOrder: "Envía mi orden",
+placeOrder: "Realice la Orden",
 createAccount: "Crear Cuenta",
 back: "Atrás",
 name: "Nombre",
@@ -400,19 +412,29 @@ sentTo: "Enviamos un código de 6 dígitos a",
 submit: "Enviar",
 resend: "Reenviar",
 loginTitle: "Iniciar Sesión",
-sendLoginCode: "Enviar Código para Iniciar Sesión",
-loginHint: "Le enviaremos un código de 6 dígitos a su correo electrónico para que pueda iniciar sesión.",
+loginEmailLabel: "Correo electrónico",
+loginBdayLabel: "Fecha de nacimiento",
+loginButton: "Iniciar Sesión",
+loginHint: "Ingrese su correo electrónico y fecha de nacimiento para iniciar sesión.",
 accountTitle: "Mi Cuenta",
 pastOrders: "Pedidos Anteriores",
 noPastOrders: "No pedidos anteriores",
 backToMenu: "Regresar al Menú",
 logout: "Cerrar sesión",
-confirmTitle: "Pedido listo para enviar",
-sendEmails: "Enviar correos",
-editOrder: "Editar",
+confirmTitle: "Resumen del Pedido",
+placeOrderBtn: "Realice la Orden",
+modifyOrder: "Modifique la Orden",
+confirmHint: "Esto abrirá su cliente de correo electrónico con el pedido prellenado para Danely y una confirmación para usted.",
 note: "No se realizan envíos. Recogida únicamente en casa de Danely. Solo se acepta pago en efectivo.",
 footer: "© 2025 Armando Gomez. Todos los derechos reservados.",
 pickup: "Recoger en: Casa de Danely",
+orderSummary: "Resumen del Pedido",
+item: "Artículo",
+quantity: "Cantidad",
+price: "Precio",
+subtotal: "Subtotal",
+total: "Total",
+dozen: "docena",
 }
 };
 
@@ -508,15 +530,16 @@ back: document.getElementById('backFromVerify')
 },
 login: {
 email: document.getElementById('loginEmail'),
-sendLoginCode: document.getElementById('sendLoginCode'),
+bday: document.getElementById('loginBday'),
+loginButton: document.getElementById('loginButton'),
 back: document.getElementById('backFromLogin'),
 },
 accountInfo: document.getElementById('accountInfo'),
 pastOrders: document.getElementById('pastOrders'),
 logoutBtn: document.getElementById('logoutBtn'),
 confirmSummary: document.getElementById('confirm-summary'),
-sendEmails: document.getElementById('sendEmails'),
-editOrder: document.getElementById('editOrder'),
+placeOrderBtn2: document.getElementById('placeOrderBtn2'),
+modifyOrder: document.getElementById('modifyOrder'),
 footerText: document.getElementById('footer-text'),
 };
 
@@ -699,14 +722,17 @@ document.getElementById('submitCode').textContent = t('submit');
 document.getElementById('resendCode').textContent = t('resend');
 document.getElementById('backFromVerify').textContent = t('back');
 document.getElementById('login-title').textContent = t('loginTitle');
-document.getElementById('sendLoginCode').textContent = t('sendLoginCode');
+document.getElementById('label-login-email').textContent = t('loginEmailLabel');
+document.getElementById('label-login-bday').textContent = t('loginBdayLabel');
+document.getElementById('loginButton').textContent = t('loginButton');
 document.getElementById('backFromLogin').textContent = t('back');
 document.getElementById('login-hint').textContent = t('loginHint');
 document.getElementById('account-title').textContent = t('accountTitle');
 document.getElementById('past-orders-title').textContent = t('pastOrders');
 document.getElementById('confirm-title').textContent = t('confirmTitle');
-document.getElementById('sendEmails').textContent = t('sendEmails');
-document.getElementById('editOrder').textContent = t('editOrder');
+document.getElementById('placeOrderBtn2').textContent = t('placeOrderBtn');
+document.getElementById('modifyOrder').textContent = t('modifyOrder');
+document.getElementById('confirm-hint').textContent = t('confirmHint');
 const goAccountBtn = document.getElementById('goAccount');
 if(goAccountBtn) goAccountBtn.textContent = t('account');
 const backToHomeBtn = document.getElementById('backToHome');
@@ -744,7 +770,7 @@ dom.goBackFromSignup && dom.goBackFromSignup.addEventListener('click', ()=>switc
 dom.verify.submitCode.addEventListener('click', submitVerificationCode);
 dom.verify.resend.addEventListener('click', resendVerification);
 dom.verify.back.addEventListener('click', ()=>switchTo('signup'));
-dom.login.sendLoginCode.addEventListener('click', sendLoginCode);
+dom.login.loginButton.addEventListener('click', loginUser);
 dom.logoutBtn.addEventListener('click', ()=>{
   currentUser=null;
   appData.session=null;
@@ -755,8 +781,8 @@ dom.logoutBtn.addEventListener('click', ()=>{
 const backToHomeBtn = document.getElementById('backToHome');
 if(backToHomeBtn) backToHomeBtn.addEventListener('click', ()=>switchTo('home'));
 dom.login.back.addEventListener('click', ()=>switchTo('home'));
-dom.sendEmails.addEventListener('click', sendEmailsForOrder);
-dom.editOrder.addEventListener('click', ()=>switchTo('home'));
+dom.placeOrderBtn2.addEventListener('click', sendEmailsForOrder);
+dom.modifyOrder.addEventListener('click', ()=>switchTo('home'));
 
 applyLang();
 renderHome();
@@ -948,34 +974,41 @@ switchTo('verify');
 
 //New
 /* ---------- Login flow (Production) ---------- */
-async function sendLoginCode(){
+/* ---------- Login flow (Production) ---------- */
+async function loginUser(){
   const email = dom.login.email.value.trim().toLowerCase();
+  const bday = dom.login.bday.value;
+
+  if(!email || !bday) {
+    alert('Please provide both email and birthday.');
+    return;
+  }
+
   const user = await loadUserByEmail(email);
 
-  if(!user) return alert('No account found with that email. Please sign up.');
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const code_created_at = Date.now();
-
-  try {
-    await fetch(`${API_URL}/api`, {  // Changed URL
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'updateVerification',
-        email: email,
-        verification_code: code,
-        code_created_at: code_created_at
-      })
-    });
-
-    currentVerification = {email, code, createdAt: code_created_at};
-    alert(`(Prototype) Login code sent: ${code}`);
-    switchTo('verify');
-  } catch (error) {
-    console.error('Error sending login code:', error);
-    alert('Error sending login code. Please try again.');
+  if(!user) {
+    alert('No account found with that email. Please sign up.');
+    return;
   }
+
+  // Check if birthday matches
+  if(user.birthday !== bday) {
+    alert('Birthday does not match our records. Please try again.');
+    return;
+  }
+
+  // Login successful
+  currentUser = user;
+  appData.session = {email: currentUser.email};
+  const goAccountBtn = document.getElementById('goAccount');
+  if(goAccountBtn) goAccountBtn.classList.remove('hidden');
+
+  // Clear login fields
+  dom.login.email.value = '';
+  dom.login.bday.value = '';
+
+  alert('Logged in successfully!');
+  switchTo('home');
 }
 
 // Old Account render function only from memory
@@ -1077,16 +1110,49 @@ dom.confirmSummary.textContent = summaryText;
 }
 
 function renderConfirm(){
-if(!pendingOrder) {
-dom.confirmSummary.textContent = 'No order prepared.';
-} else {
-let summaryText = '';
-pendingOrder.items.forEach(item => {
-summaryText += `${item.qty} dozen ${item.name} — ${formatCurrency(item.total)}\n`;
-});
-summaryText += `\nGrand Total: ${formatCurrency(pendingOrder.grandTotal)}\n${t('pickup')}`;
-dom.confirmSummary.textContent = summaryText;
-}
+  if(!pendingOrder) {
+    dom.confirmSummary.textContent = 'No order prepared.';
+  } else {
+    // Build receipt-style summary
+    let summaryHTML = `
+      <div style="border-bottom:0.125em solid var(--accent-dark);padding-bottom:0.5em;margin-bottom:0.75em;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:0.0625em solid rgba(0,0,0,0.1);">
+              <th style="text-align:left;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('item')}</th>
+              <th style="text-align:center;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('quantity')}</th>
+              <th style="text-align:right;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('price')}</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    pendingOrder.items.forEach(item => {
+      summaryHTML += `
+        <tr style="border-bottom:0.0625em solid rgba(0,0,0,0.05);">
+          <td style="padding:0.625em 0;font-weight:600">${item.name}</td>
+          <td style="text-align:center;padding:0.625em 0">${item.qty} ${t('dozen')}</td>
+          <td style="text-align:right;padding:0.625em 0">${formatCurrency(item.total)}</td>
+        </tr>
+      `;
+    });
+
+    summaryHTML += `
+          </tbody>
+        </table>
+      </div>
+      <div style="text-align:right;margin-top:0.75em;">
+        <div style="font-size:1.25em;font-weight:800;color:var(--accent-dark);margin-bottom:0.5em;">
+          ${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}
+        </div>
+        <div style="font-size:0.875em;color:var(--muted);margin-top:0.375em;">
+          ${t('pickup')}
+        </div>
+      </div>
+    `;
+
+    dom.confirmSummary.innerHTML = summaryHTML;
+  }
 }
 
 /* ---------- Email sending (mailto prototype) ---------- */
