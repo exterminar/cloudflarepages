@@ -215,16 +215,20 @@ header h1{font-size:1.5em}
 
 <main id="app">
 
-<!-- HOME / HERO -->
+<!-- HOME -->
 <section id="home" class="view">
 <div class="hero">
 <h2 id="hero-title">Handmade Tamales Made Every Month</h2>
 <p id="hero-sub">Cash & Pickup only.</p>
 </div>
 
-<div class="actions card" style="padding:0.75em;">
+<div class="actions card" style="padding:0.75em;" id="auth-buttons">
 <button id="goSignUp" class="btn primary">Sign Up</button>
 <button id="goLogin" class="btn ghost">Log In</button>
+</div>
+
+<div class="card hidden" id="logged-in-card" style="text-align:center;padding:0.75em;">
+<p class="muted" style="margin:0"><span id="logged-in-text">Logged in as:</span> <strong id="logged-in-name"></strong></p>
 </div>
 
 <div class="card">
@@ -307,7 +311,7 @@ We will send a 6-digit verification code to your email to finish signing up.
 </div>
 
 <div class="card">
-<h4>Past Orders</h4>
+<h4 id="past-orders-title">Past Orders</h4>
 <div id="pastOrders" class="muted small">No past orders</div>
 </div>
 
@@ -347,6 +351,7 @@ heroSub: "Handmade by Danely. Pay cash only.",
 signUp: "Register",
 logIn: "Log In",
 account: "Account",
+loggedInAs: "Logged in as:",
 thismonth: "This Month's Tamales (Order by Jan 22)",
 placeOrder: "Send my order",
 createAccount: "Create Account",
@@ -363,6 +368,8 @@ loginTitle: "Log In",
 sendLoginCode: "Send Log In Code",
 loginHint: "We will send a 6-digit code to your email to log in.",
 accountTitle: "My Account",
+pastOrders: "Past Orders",
+noPastOrders: "No past orders",
 backToMenu: "Back to Menu",
 logout: "Log Out",
 confirmTitle: "Order Ready to Send",
@@ -379,7 +386,8 @@ heroSub: "Hechos a mano por Danely. Solo pago en efectivo.",
 signUp: "Regístrese",
 logIn: "Iniciar Sesión",
 account: "Cuenta",
-thismonth: "Tamales de este mes (Haz tu pedido antes del 22 de enero)",
+loggedInAs: "Conectado como:",
+thismonth: "Tamales de este mes (Ordena antes del 22 de Enero)",
 placeOrder: "Envía mi orden",
 createAccount: "Crear Cuenta",
 back: "Atrás",
@@ -395,6 +403,8 @@ loginTitle: "Iniciar Sesión",
 sendLoginCode: "Enviar Código para Iniciar Sesión",
 loginHint: "Le enviaremos un código de 6 dígitos a su correo electrónico para que pueda iniciar sesión.",
 accountTitle: "Mi Cuenta",
+pastOrders: "Pedidos Anteriores",
+noPastOrders: "No pedidos anteriores",
 backToMenu: "Regresar al Menú",
 logout: "Cerrar sesión",
 confirmTitle: "Pedido listo para enviar",
@@ -577,6 +587,22 @@ appData.orders.unshift(order);
 }
 
 function renderHome(){
+// Show/hide auth buttons based on login status
+const authButtons = document.getElementById('auth-buttons');
+const loggedInCard = document.getElementById('logged-in-card');
+const loggedInName = document.getElementById('logged-in-name');
+const loggedInText = document.getElementById('logged-in-text');
+
+if(currentUser) {
+  authButtons.classList.add('hidden');
+  loggedInCard.classList.remove('hidden');
+  loggedInName.textContent = currentUser.name;
+  loggedInText.textContent = t('loggedInAs');
+} else {
+  authButtons.classList.remove('hidden');
+  loggedInCard.classList.add('hidden');
+}
+
 // Render all available tamales
 const container = dom.tamalesContainer;
 container.innerHTML = '';
@@ -677,6 +703,7 @@ document.getElementById('sendLoginCode').textContent = t('sendLoginCode');
 document.getElementById('backFromLogin').textContent = t('back');
 document.getElementById('login-hint').textContent = t('loginHint');
 document.getElementById('account-title').textContent = t('accountTitle');
+document.getElementById('past-orders-title').textContent = t('pastOrders');
 document.getElementById('confirm-title').textContent = t('confirmTitle');
 document.getElementById('sendEmails').textContent = t('sendEmails');
 document.getElementById('editOrder').textContent = t('editOrder');
@@ -974,10 +1001,11 @@ return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total:
 
 // New Account render function from DB
 /* ---------- Account render ---------- */
+/* ---------- Account render ---------- */
 async function renderAccount(){
   if(!currentUser){
     dom.accountInfo.textContent = 'Not logged in';
-    dom.pastOrders.textContent = 'No past orders';
+    dom.pastOrders.textContent = t('noPastOrders');
     return;
   }
 
@@ -989,7 +1017,7 @@ async function renderAccount(){
 
   dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUser.email}<br>${currentUser.phone||''}`;
   const orders = appData.orders.filter(o=>o.email===currentUser.email);
-  if(!orders.length) dom.pastOrders.textContent = 'No past orders';
+  if(!orders.length) dom.pastOrders.textContent = t('noPastOrders');
   else {
     dom.pastOrders.innerHTML = orders.map(o=>{
       let itemsText = o.items.map(item => `${item.qty} doz ${item.name}`).join(', ');
