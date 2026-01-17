@@ -299,8 +299,9 @@ We will send a 6-digit verification code to your email to finish signing up.
 <div id="pastOrders" class="muted small">No past orders</div>
 </div>
 
-<div style="padding:0 1.125em 1.125em;">
-<button id="logoutBtn" class="btn ghost" style="width:100%">Log Out</button>
+<div style="padding:0 1.125em 1.125em;display:flex;gap:0.625em;">
+<button id="backToHome" class="btn primary" style="flex:1">Back to Menu</button>
+<button id="logoutBtn" class="btn ghost" style="flex:1">Log Out</button>
 </div>
 </section>
 
@@ -348,6 +349,7 @@ resend: "Resend",
 loginTitle: "Log In",
 sendLoginCode: "Send Login Code",
 accountTitle: "My Account",
+backToMenu: "Back to Menu",
 logout: "Log Out",
 confirmTitle: "Order Ready to Send",
 sendEmails: "Send Emails",
@@ -377,6 +379,7 @@ resend: "Reenviar",
 loginTitle: "Iniciar sesión",
 sendLoginCode: "Enviar código",
 accountTitle: "Mi cuenta",
+backToMenu: "Regresar al Menú",
 logout: "Cerrar sesión",
 confirmTitle: "Pedido listo para enviar",
 sendEmails: "Enviar correos",
@@ -651,6 +654,10 @@ document.getElementById('account-title').textContent = t('accountTitle');
 document.getElementById('confirm-title').textContent = t('confirmTitle');
 const goAccountBtn = document.getElementById('goAccount');
 if(goAccountBtn) goAccountBtn.textContent = t('account');
+const backToHomeBtn = document.getElementById('backToHome');
+if(backToHomeBtn) backToHomeBtn.textContent = t('backToMenu');
+const logoutBtn = document.getElementById('logoutBtn');
+if(logoutBtn) logoutBtn.textContent = t('logout');
 dom.footerText.textContent = t('footer');
 renderHome(); // Re-render tamales with new language
 }
@@ -663,7 +670,6 @@ dom.btnEs.addEventListener('click',()=>{LANG='es';appData.lang='es'; applyLang()
 dom.goSignUp.addEventListener('click', ()=>switchTo('signup'));
 dom.goLogin.addEventListener('click', ()=>switchTo('login'));
 
-// ADD THIS LINE:
 const goAccountBtn = document.getElementById('goAccount');
 if(goAccountBtn) goAccountBtn.addEventListener('click', ()=>switchTo('account'));
 
@@ -691,6 +697,8 @@ dom.logoutBtn.addEventListener('click', ()=>{
   if(goAccountBtn) goAccountBtn.classList.add('hidden');
   switchTo('home');
 });
+const backToHomeBtn = document.getElementById('backToHome');
+if(backToHomeBtn) backToHomeBtn.addEventListener('click', ()=>switchTo('home'));
 dom.login.back.addEventListener('click', ()=>switchTo('home'));
 dom.sendEmails.addEventListener('click', sendEmailsForOrder);
 dom.editOrder.addEventListener('click', ()=>switchTo('home'));
