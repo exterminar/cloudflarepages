@@ -605,8 +605,14 @@ async function loadUserByEmail(email){
   }
 }
 
-function saveOrder(order){
-appData.orders.unshift(order);
+// Save order both to database and in-memory for immediate display
+async function saveOrder(order){
+  // Save to D1 database
+  const result = await saveOrderToDB(order);
+  if(result && result.success) {
+    // Also save to memory for immediate display (optional, since we load from DB)
+    appData.orders.unshift({...order, id: result.orderId});
+  }
 }
 
 function renderHome(){
@@ -1032,8 +1038,7 @@ return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total:
 }
 */
 
-// New Account render function from DB
-/* ---------- Account render ---------- */
+// New Account render function from D1 database with delete functionality
 /* ---------- Account render ---------- */
 async function renderAccount(){
   if(!currentUser){
@@ -1048,14 +1053,50 @@ async function renderAccount(){
     currentUser = freshUser; // Update with latest data
   }
 
+  // Display user information
   dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUser.email}<br>${currentUser.phone||''}`;
-  const orders = appData.orders.filter(o=>o.email===currentUser.email);
-  if(!orders.length) dom.pastOrders.textContent = t('noPastOrders');
-  else {
+
+  // Load orders from D1 database
+  const orders = await loadOrdersFromDB(currentUser.email);
+
+  if(!orders.length) {
+    dom.pastOrders.textContent = t('noPastOrders');
+  } else {
+    // Render each order with delete button
     dom.pastOrders.innerHTML = orders.map(o=>{
       let itemsText = o.items.map(item => `${item.qty} doz ${item.name}`).join(', ');
-      return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total: ${formatCurrency(o.grandTotal)}<br><span class="small muted">${new Date(o.createdAt).toLocaleString()}</span></div>`;
+      return `
+        <div style="margin-bottom:0.75em;padding:0.75em;background:rgba(255,255,255,0.5);border-radius:0.5em;">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.375em;">
+            <strong style="flex:1">${itemsText}</strong>
+            <button
+              class="delete-order-btn"
+              data-order-id="${o.id}"
+              style="background:var(--cta);color:var(--cta-text);border:none;padding:0.375em 0.75em;border-radius:0.375em;cursor:pointer;font-size:0.75em;font-weight:600;"
+            >
+              ${t('deleteOrder')}
+            </button>
+          </div>
+          <div>Total: ${formatCurrency(o.grand_total)}</div>
+          <div class="small muted">${new Date(o.created_at).toLocaleString()}</div>
+        </div>
+      `;
     }).join('');
+
+    // Add event listeners to all delete buttons
+    document.querySelectorAll('.delete-order-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const orderId = parseInt(e.target.dataset.orderId);
+        if(confirm(t('confirmDelete'))) {
+          const success = await deleteOrderFromDB(orderId, currentUser.email);
+          if(success) {
+            renderAccount(); // Re-render account page to show updated order list
+          } else {
+            alert('Error deleting order. Please try again.');
+          }
+        }
+      });
+    });
   }
 }
 
@@ -1156,10 +1197,11 @@ function renderConfirm(){
 }
 
 /* ---------- Email sending (mailto prototype) ---------- */
-function sendEmailsForOrder(){
+async function sendEmailsForOrder(){
 if(!pendingOrder) return alert('No order to send.');
-// Save order locally
-saveOrder(pendingOrder);
+
+// Save order to D1 database
+await saveOrder(pendingOrder);
 
 // Build order details for email
 let orderDetails = '';
@@ -1195,6 +1237,62 @@ alert('An email composer to Danely (and a confirmation to you) should open in yo
 // clear pending
 pendingOrder = null;
 switchTo('home');
+}
+
+// Save order to D1 database via API
+async function saveOrderToDB(order){
+  try {
+    const response = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'createOrder',
+        user_email: order.email,
+        user_name: order.name,
+        user_phone: order.phone,
+        items: order.items,
+        grand_total: order.grandTotal,
+        created_at: order.createdAt
+      })
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error saving order:', error);
+    return null;
+  }
+}
+
+// Load all orders for a user from D1 database via API
+async function loadOrdersFromDB(email){
+  try {
+    const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
+    const data = await response.json();
+    return data.orders || [];
+  } catch (error) {
+    console.error('Error loading orders:', error);
+    return [];
+  }
+}
+
+// Delete a specific order from D1 database via API
+async function deleteOrderFromDB(orderId, userEmail){
+  try {
+    const response = await fetch(`${API_URL}/api`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'deleteOrder',
+        orderId: orderId,
+        userEmail: userEmail
+      })
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    return false;
+  }
 }
 
 // Initialize app
