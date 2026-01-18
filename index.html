@@ -356,6 +356,8 @@ account: "Account",
 loggedInAs: "Logged in as:",
 thismonth: "This Month's Tamales (Order by Jan 22)",
 placeOrder: "Place Order",
+deleteOrder: "Delete",
+confirmDelete: "Are you sure you want to delete this order?",
 createAccount: "Create Account",
 back: "Back",
 name: "Name",
@@ -401,6 +403,8 @@ account: "Cuenta",
 loggedInAs: "Conectado como:",
 thismonth: "Tamales de este mes (Ordena antes del 22 de Enero)",
 placeOrder: "Realice la Orden",
+deleteOrder: "Eliminar",
+confirmDelete: "¿Está seguro de que desea eliminar esta orden?",
 createAccount: "Crear Cuenta",
 back: "Atrás",
 name: "Nombre",
@@ -1196,52 +1200,58 @@ function renderConfirm(){
   }
 }
 
-/* ---------- Email sending (mailto prototype) ---------- */
+/* ---------- Email sending (Production) ---------- */
 async function sendEmailsForOrder(){
-if(!pendingOrder) return alert('No order to send.');
+  if(!pendingOrder) return alert('No order to send.');
 
-// Save order to D1 database
-await saveOrder(pendingOrder);
+  console.log('Saving order:', pendingOrder); // DEBUG
 
-// Build order details for email
-let orderDetails = '';
-pendingOrder.items.forEach(item => {
-orderDetails += `${item.name}: ${item.qty} dozen @ ${formatCurrency(item.pricePerDozen)}/dozen = ${formatCurrency(item.total)}\n`;
-});
+  // Save order to D1 database
+  const saveResult = await saveOrder(pendingOrder);
+  console.log('Save result:', saveResult); // DEBUG
 
-// Build email to Danely
-const danelyEmail = 'danely@live.com'; // <-- REPLACE with Danely's real email
-const subjectToDanely = encodeURIComponent(`New Order of Tamales from ${pendingOrder.name}`);
-const bodyToDanely = encodeURIComponent(
-`New order received:\n\nName: ${pendingOrder.name}\nEmail: ${pendingOrder.email}\nPhone: ${pendingOrder.phone || 'N/A'}\n\nORDER:\n${orderDetails}\nGRAND TOTAL: ${formatCurrency(pendingOrder.grandTotal)}\n\nPickup: Danely's House\nPayment: Cash only`
-);
+  // Build order details for email
+  let orderDetails = '';
+  pendingOrder.items.forEach(item => {
+    orderDetails += `${item.name}: ${item.qty} dozen @ ${formatCurrency(item.pricePerDozen)}/dozen = ${formatCurrency(item.total)}\n`;
+  });
 
-// Build confirmation email to user
-const subjectToCustomer = encodeURIComponent(`Your Order of Tamales Confirmation`);
-const bodyToCustomer = encodeURIComponent(
-`Hi ${pendingOrder.name}!\n\nThanks for your order:\n\n${orderDetails}\nGrand Total Due: ${formatCurrency(pendingOrder.grandTotal)} (Cash at pickup)\nPickup at: Danely's House\n\nSee you soon!`
-);
+  // Build email to Danely
+  const danelyEmail = 'danely@live.com'; // <-- REPLACE with Danely's real email
+  const subjectToDanely = encodeURIComponent(`New Order of Tamales from ${pendingOrder.name}`);
+  const bodyToDanely = encodeURIComponent(
+    `New order received:\n\nName: ${pendingOrder.name}\nEmail: ${pendingOrder.email}\nPhone: ${pendingOrder.phone || 'N/A'}\n\nORDER:\n${orderDetails}\nGRAND TOTAL: ${formatCurrency(pendingOrder.grandTotal)}\n\nPickup: Danely's House\nPayment: Cash only`
+  );
 
-// Open Danely email in user's default mail client (mailto)
-const mailtoDanely = `mailto:${danelyEmail}?subject=${subjectToDanely}&body=${bodyToDanely}`;
-const mailtoCustomer = `mailto:${pendingOrder.email}?subject=${subjectToCustomer}&body=${bodyToCustomer}`;
+  // Build confirmation email to user
+  const subjectToCustomer = encodeURIComponent(`Your Order of Tamales Confirmation`);
+  const bodyToCustomer = encodeURIComponent(
+    `Hi ${pendingOrder.name}!\n\nThanks for your order:\n\n${orderDetails}\nGrand Total Due: ${formatCurrency(pendingOrder.grandTotal)} (Cash at pickup)\nPickup at: Danely's House\n\nSee you soon!`
+  );
 
-// open both (this will prompt user's mail client; some browsers open only 1, so we attempt both)
-window.location.href = mailtoDanely;
-setTimeout(()=> {
-// try customer mail shortly after
-window.location.href = mailtoCustomer;
-}, 600);
+  // Open Danely email in user's default mail client (mailto)
+  const mailtoDanely = `mailto:${danelyEmail}?subject=${subjectToDanely}&body=${bodyToDanely}`;
+  const mailtoCustomer = `mailto:${pendingOrder.email}?subject=${subjectToCustomer}&body=${bodyToCustomer}`;
 
-alert('An email composer to Danely (and a confirmation to you) should open in your mail application. In production, replace this with a server-side email sender so messages are delivered automatically.');
-// clear pending
-pendingOrder = null;
-switchTo('home');
+  // open both (this will prompt user's mail client; some browsers open only 1, so we attempt both)
+  window.location.href = mailtoDanely;
+  setTimeout(()=> {
+    // try customer mail shortly after
+    window.location.href = mailtoCustomer;
+  }, 600);
+
+  alert('Order placed successfully! You can view it in your account.');
+  // clear pending
+  pendingOrder = null;
+  switchTo('home');
 }
 
 // Save order to D1 database via API
+// Save order both to database and in-memory for immediate display
+// Save order to D1 database via API
 async function saveOrderToDB(order){
   try {
+    console.log('Calling API to save order...'); // DEBUG
     const response = await fetch(`${API_URL}/api`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1256,6 +1266,7 @@ async function saveOrderToDB(order){
       })
     });
     const data = await response.json();
+    console.log('API response:', data); // DEBUG
     return data;
   } catch (error) {
     console.error('Error saving order:', error);
@@ -1266,15 +1277,16 @@ async function saveOrderToDB(order){
 // Load all orders for a user from D1 database via API
 async function loadOrdersFromDB(email){
   try {
+    console.log('Loading orders for:', email); // DEBUG
     const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
     const data = await response.json();
+    console.log('Orders loaded:', data.orders); // DEBUG
     return data.orders || [];
   } catch (error) {
     console.error('Error loading orders:', error);
     return [];
   }
 }
-
 // Delete a specific order from D1 database via API
 async function deleteOrderFromDB(orderId, userEmail){
   try {
