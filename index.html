@@ -1206,44 +1206,48 @@ async function sendEmailsForOrder(){
 
   console.log('Saving order:', pendingOrder); // DEBUG
 
-  // Save order to D1 database
-  const saveResult = await saveOrder(pendingOrder);
-  console.log('Save result:', saveResult); // DEBUG
+  try {
+    // First, save order to D1 database
+    const saveResult = await saveOrder(pendingOrder);
+    console.log('Save result:', saveResult); // DEBUG
 
-  // Build order details for email
-  let orderDetails = '';
-  pendingOrder.items.forEach(item => {
-    orderDetails += `${item.name}: ${item.qty} dozen @ ${formatCurrency(item.pricePerDozen)}/dozen = ${formatCurrency(item.total)}\n`;
-  });
+    if (!saveResult || !saveResult.success) {
+      alert('Error saving order. Please try again.');
+      return;
+    }
 
-  // Build order details for display (with proper formatting)
-  let orderDetailsDisplay = '';
-  pendingOrder.items.forEach(item => {
-    orderDetailsDisplay += `• ${item.name}: ${item.qty} ${t('dozen')} - ${formatCurrency(item.total)}\n`;
-  });
+    // Then, send emails via API
+    const emailResponse = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'sendOrderEmails',
+        order: pendingOrder
+      })
+    });
 
-await fetch(`${API_URL}/api`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    action: 'sendOrderEmails',
-    order: pendingOrder
-  })
-});
+    const emailResult = await emailResponse.json();
+    console.log('Email result:', emailResult); // DEBUG
 
-pendingOrder = null;
-switchTo('home');
+    if (emailResult.success) {
+      alert('Order placed successfully! You will receive a confirmation email shortly.');
+    } else {
+      alert('Order saved, but there was an issue sending confirmation emails. We will contact you soon.');
+    }
 
-  // Reset all tamale quantities to zero after order is placed
-  TAMALES_DATA.forEach(tamale => {
-    qty[tamale.id] = 0;
-  });
+    // Reset quantities and clear pending order
+    TAMALES_DATA.forEach(tamale => {
+      qty[tamale.id] = 0;
+    });
+    pendingOrder = null;
 
-  // clear pending order
-  pendingOrder = null;
+    // Return to home page
+    switchTo('home');
 
-  // Return to home page with reset quantities
-  switchTo('home');
+  } catch (error) {
+    console.error('Error placing order:', error);
+    alert('There was an error placing your order. Please try again or contact us directly.');
+  }
 }
 
 // Save order to D1 database via API
