@@ -871,14 +871,21 @@ async function createAccountFlow(){
     createdAt: new Date().toISOString()
   };
 
-  await saveUserToStorage(user);
+await fetch(`${API_URL}/api`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    action: 'sendVerificationEmail',
+    email,
+    name,
+    code
+  })
+});
 
-  currentVerification = {email, code, createdAt: code_created_at};
-  dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
+currentVerification = { email, code, createdAt: code_created_at };
+dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
+switchTo('verify');
 
-  // For prototype: show the code
-  alert(`(Prototype) Verification code sent: ${code}`);
-  switchTo('verify');
 }
 
 // Old verification code function just compared with memory
@@ -1252,9 +1259,19 @@ async function sendEmailsForOrder(){
     `Hi ${pendingOrder.name}!\n\nThanks for your order:\n\n${orderDetails}\nGrand Total Due: ${formatCurrency(pendingOrder.grandTotal)} (Cash at pickup)\nPickup at: Danely's House\n\nSee you soon!`
   );
 
-  // Open Danely email in user's default mail client (mailto)
-  const mailtoDanely = `mailto:${danelyEmail}?subject=${subjectToDanely}&body=${bodyToDanely}`;
-  const mailtoCustomer = `mailto:${pendingOrder.email}?subject=${subjectToCustomer}&body=${bodyToCustomer}`;
+await fetch(`${API_URL}/api`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    action: 'sendOrderEmails',
+    order: pendingOrder
+  })
+});
+
+alert(`${t('orderPlaced')}\n\n${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}\n\n${t('pickup')}`);
+
+pendingOrder = null;
+switchTo('home');
 
   // Show confirmation message with order details
   alert(`${t('orderPlaced')}\n\n${orderDetailsDisplay}\n${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}\n\n${t('pickup')}`);
