@@ -1,24 +1,60 @@
-import { Resend } from 'resend';
-
+// /functions/api.js
 export async function onRequest({ request, env }) {
-  if (!env.RESEND_API_KEY) {
-    return new Response(JSON.stringify({ error: 'RESEND_API_KEY not configured' }), { status: 500 });
-  }
-
-  const resend = new Resend(env.RESEND_API_KEY);
-  const url = new URL(request.url);
-
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
 
+  // Helper functions
+  function json(data) {
+    return new Response(JSON.stringify(data), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  function jsonError(message, status) {
+    return new Response(JSON.stringify({ error: message }), {
+      status,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Helper to send emails via Resend API
+  async function sendEmail({ to, subject, html }) {
+    if (!env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY not configured');
+    }
+
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: env.FROM_EMAIL || 'Tamales de Danely <onboarding@resend.dev>',
+        to: Array.isArray(to) ? to : [to],
+        subject,
+        html,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Resend API error: ${errorText}`);
+    }
+
+    return await response.json();
+  }
+
   if (request.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    const url = new URL(request.url);
+
     /* =====================================================
        GET REQUESTS
     ===================================================== */
@@ -64,18 +100,41 @@ export async function onRequest({ request, env }) {
 
       /* ---------- SEND VERIFICATION EMAIL ---------- */
       if (action === 'sendVerificationEmail') {
-        const { email, code } = body;
+        const { email, name, code } = body;
         if (!email || !code) return jsonError('Email and code required', 400);
 
-        await resend.emails.send({
-          from: env.FROM_EMAIL,
+        await sendEmail({
           to: email,
-          subject: 'Your Tamales de Danely verification code',
+          subject: 'Verify Your Email - Tamales de Danely',
           html: `
-            <h2>Verify your email</h2>
-            <p>Your verification code is:</p>
-            <h1 style="letter-spacing:4px">${code}</h1>
-            <p>This code expires in 10 minutes.</p>
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+                .header { background: linear-gradient(180deg, #FF9C1A, #FFA43B); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background: #FFF3E6; padding: 40px; border-radius: 0 0 8px 8px; }
+                .code { font-size: 36px; font-weight: bold; color: #E65100; text-align: center; letter-spacing: 8px; padding: 20px; background: white; border-radius: 8px; margin: 20px 0; }
+                .footer { text-align: center; margin-top: 20px; color: #8C5A2D; font-size: 14px; }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h1 style="margin: 0;">🫔 Tamales de Danely</h1>
+              </div>
+              <div class="content">
+                <p>Hola ${name || 'there'},</p>
+                <p>Thank you for signing up! Please use the verification code below to complete your registration:</p>
+                <div class="code">${code}</div>
+                <p>This code will expire in 10 minutes.</p>
+                <p>If you didn't request this code, please ignore this email.</p>
+                <p>¡Gracias!<br>Danely</p>
+              </div>
+              <div class="footer">
+                © 2025 Tamales de Danely. All rights reserved.
+              </div>
+            </body>
+            </html>
           `,
         });
 
@@ -90,34 +149,124 @@ export async function onRequest({ request, env }) {
         }
 
         const itemsHtml = order.items
-          .map(i => `<li>${i.qty} dozen ${i.name} — $${i.total.toFixed(2)}</li>`)
+          .map(i => `
+            <tr>
+              <td style="padding: 10px; border-bottom: 1px solid #eee;">${i.name}</td>
+              <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${i.qty} dozen</td>
+              <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">$${i.total.toFixed(2)}</td>
+            </tr>
+          `)
           .join('');
 
-        // Admin email
-        await resend.emails.send({
-          from: env.FROM_EMAIL,
-          to: env.DANELY_EMAIL,
-          subject: `New Tamales Order — ${order.name}`,
+        // Send email to Danely (admin)
+        await sendEmail({
+          to: env.DANELY_EMAIL || 'danely@example.com',
+          subject: `🫔 New Tamales Order from ${order.name}`,
           html: `
-            <h2>New Order</h2>
-            <p><strong>Name:</strong> ${order.name}</p>
-            <p><strong>Email:</strong> ${order.email}</p>
-            <p><strong>Phone:</strong> ${order.phone || 'N/A'}</p>
-            <ul>${itemsHtml}</ul>
-            <h3>Total: $${order.grandTotal.toFixed(2)}</h3>
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+                .header { background: linear-gradient(180deg, #FF9C1A, #FFA43B); color: white; padding: 30px; text-align: center; }
+                .content { background: #FFF3E6; padding: 30px; }
+                table { width: 100%; border-collapse: collapse; background: white; margin: 20px 0; }
+                th { background: #E65100; color: white; padding: 12px; text-align: left; }
+                td { padding: 10px; border-bottom: 1px solid #eee; }
+                .total { font-size: 20px; font-weight: bold; color: #E65100; margin-top: 20px; }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h1 style="margin: 0;">🫔 New Tamale Order!</h1>
+              </div>
+              <div class="content">
+                <h2>Customer Information</h2>
+                <p><strong>Name:</strong> ${order.name}<br>
+                <strong>Email:</strong> ${order.email}<br>
+                <strong>Phone:</strong> ${order.phone || 'Not provided'}</p>
+                
+                <h2>Order Details</h2>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th style="text-align: center;">Quantity</th>
+                      <th style="text-align: right;">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${itemsHtml}
+                  </tbody>
+                </table>
+                
+                <div class="total">Total: $${order.grandTotal.toFixed(2)}</div>
+                
+                <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
+              </div>
+            </body>
+            </html>
           `,
         });
 
-        // Customer email
-        await resend.emails.send({
-          from: env.FROM_EMAIL,
+        // Send confirmation email to customer
+        await sendEmail({
           to: order.email,
-          subject: 'Your Tamales Order Confirmation',
+          subject: '¡Order Confirmed! - Tamales de Danely',
           html: `
-            <h2>Thanks for your order, ${order.name}!</h2>
-            <ul>${itemsHtml}</ul>
-            <h3>Total Due: $${order.grandTotal.toFixed(2)}</h3>
-            <p>Payment: Cash at pickup</p>
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+                .header { background: linear-gradient(180deg, #FF9C1A, #FFA43B); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background: #FFF3E6; padding: 30px; border-radius: 0 0 8px 8px; }
+                table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin: 20px 0; }
+                th { background: #E65100; color: white; padding: 12px; text-align: left; }
+                td { padding: 10px; border-bottom: 1px solid #eee; }
+                .total { font-size: 20px; font-weight: bold; color: #E65100; text-align: right; margin-top: 20px; }
+                .footer { text-align: center; margin-top: 20px; color: #8C5A2D; font-size: 14px; }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h1 style="margin: 0;">¡Gracias por tu orden!</h1>
+              </div>
+              <div class="content">
+                <p>Hola ${order.name},</p>
+                <p>We received your tamale order! Here are the details:</p>
+                
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Item</th>
+                      <th style="text-align: center;">Quantity</th>
+                      <th style="text-align: right;">Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${itemsHtml}
+                  </tbody>
+                </table>
+                
+                <div class="total">Total: $${order.grandTotal.toFixed(2)}</div>
+                
+                <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 8px;">
+                  <p style="margin: 0 0 10px 0;"><strong>📍 Pickup Details:</strong></p>
+                  <p style="margin: 5px 0;">📍 Danely's House<br>
+                  💵 Cash only, please<br>
+                  📅 Pickup by January 22nd</p>
+                </div>
+                
+                <p style="margin-top: 20px;">We'll contact you when your order is ready for pickup!</p>
+                
+                <p>¡Gracias!<br>Danely</p>
+              </div>
+              <div class="footer">
+                © 2025 Tamales de Danely. All rights reserved.
+              </div>
+            </body>
+            </html>
           `,
         });
 
@@ -140,7 +289,7 @@ export async function onRequest({ request, env }) {
           ).bind(name, birthday, phone, verification_code, code_created_at, email.toLowerCase()).run();
         } else {
           await env.DB.prepare(
-            'INSERT INTO users (name, birthday, email, phone, verification_code, code_created_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO users (name, birthday, email, phone, verification_code, code_created_at, created_at, verified) VALUES (?, ?, ?, ?, ?, ?, ?, 0)'
           ).bind(name, birthday, email.toLowerCase(), phone, verification_code, code_created_at, new Date().toISOString()).run();
         }
 
@@ -210,21 +359,7 @@ export async function onRequest({ request, env }) {
 
     return jsonError('Invalid action or method', 400);
   } catch (err) {
-    console.error(err);
+    console.error('API Error:', err);
     return jsonError(err.message, 500);
-  }
-
-  /* ---------- helpers ---------- */
-  function json(data) {
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  }
-
-  function jsonError(message, status) {
-    return new Response(JSON.stringify({ error: message }), {
-      status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   }
 }
