@@ -1231,20 +1231,8 @@ await fetch(`${API_URL}/api`, {
   })
 });
 
-alert(`${t('orderPlaced')}\n\n${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}\n\n${t('pickup')}`);
-
 pendingOrder = null;
 switchTo('home');
-
-  // Show confirmation message with order details
-  alert(`${t('orderPlaced')}\n\n${orderDetailsDisplay}\n${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}\n\n${t('pickup')}`);
-
-  // open both (this will prompt user's mail client; some browsers open only 1, so we attempt both)
-  window.location.href = mailtoDanely;
-  setTimeout(()=> {
-    // try customer mail shortly after
-    window.location.href = mailtoCustomer;
-  }, 600);
 
   // Reset all tamale quantities to zero after order is placed
   TAMALES_DATA.forEach(tamale => {
