@@ -613,10 +613,13 @@ async function loadUserByEmail(email){
 async function saveOrder(order){
   // Save to D1 database
   const result = await saveOrderToDB(order);
+  console.log('saveOrderToDB result:', result); // DEBUG
   if(result && result.success) {
     // Also save to memory for immediate display (optional, since we load from DB)
     appData.orders.unshift({...order, id: result.orderId});
+    return result;  // ADD THIS LINE - Return the result so caller can check if it worked
   }
+  return null;  // ADD THIS LINE - Return null if save failed
 }
 
 function renderHome(){
