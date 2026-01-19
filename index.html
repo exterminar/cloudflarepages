@@ -282,7 +282,9 @@ We will send a 6-digit verification code to your email to finish signing up.
 <button id="submitCode" class="btn primary" style="flex:1">Submit</button>
 <button id="resendCode" class="btn ghost" style="flex:1">Resend</button>
 </div>
-<p id="verify-hint" class="muted small">For this prototype the code is shown on screen after "sending". In production, integrate a server-side email service.</p>
+<p id="verify-hint" class="muted small">
+Check your email for the 6-digit verification code.
+</p>
 </div>
 <div style="padding:0 1.125em 1.125em;">
 <button id="backFromVerify" class="linkish">Back</button>
@@ -332,7 +334,9 @@ We will send a 6-digit verification code to your email to finish signing up.
 <button id="placeOrderBtn2" class="btn primary" style="flex:1">Place Order</button>
 <button id="modifyOrder" class="btn ghost" style="flex:1">Modify Order</button>
 </div>
-<p class="muted small center" id="confirm-hint" style="margin-top:0.75em">This will open your email client with the order prefilled for Danely and a confirmation to you.</p>
+<p class="muted small center" id="confirm-hint">
+Your order will be emailed to Danely and a confirmation will be sent to you.
+</p>
 </div>
 </section>
 
@@ -949,65 +953,37 @@ async function submitVerificationCode(){
   }
 }
 
-// Old resend verification code function only showing from memory
-/*
-function resendVerification(){
-if(!currentVerification) return alert('No verification in progress.');
-// Generate new code
-const code = Math.floor(100000 + Math.random() * 900000).toString();
-currentVerification.code = code;
-currentVerification.createdAt = Date.now();
-// Show prototype code
-alert(`(Prototype) New verification code: ${code}`);
-dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
-}
-*/
-
-// New resend verification code function showing from DB
 async function resendVerification(){
-  if(!currentVerification) return alert('No verification in progress.');
+  if(!currentVerification) {
+    alert('No verification in progress.');
+    return;
+  }
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const code_created_at = Date.now();
 
   try {
-    await fetch(`${API_URL}/api`, {  // Changed URL
+    await fetch(`${API_URL}/api`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'updateVerification',
+        action: 'sendVerificationEmail',
         email: currentVerification.email,
-        verification_code: code,
-        code_created_at: code_created_at
+        code
       })
     });
 
     currentVerification.code = code;
-    currentVerification.createdAt = code_created_at;
-    alert(`(Prototype) New verification code: ${code}`);
+    currentVerification.createdAt = Date.now();
     dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
-  } catch (error) {
-    console.error('Error resending code:', error);
-    alert('Error resending code. Please try again.');
+
+    alert('A new verification code has been sent to your email.');
+  } catch (err) {
+    console.error(err);
+    alert('Failed to resend verification email.');
   }
 }
 
-// Obsoleted
-/* ---------- Login flow (prototype) ---------- */
-/*
-function sendLoginCode(){
-const email = dom.login.email.value.trim().toLowerCase();
-const user = loadUserByEmail(email);
-if(!user) return alert('No account found with that email. Please sign up.');
-const code = Math.floor(100000 + Math.random() * 900000).toString();
-currentVerification = {email, code, createdAt:Date.now()};
-alert(`(Prototype) Login code sent: ${code}`);
-switchTo('verify');
-}
-*/
 
-//New
-/* ---------- Login flow (Production) ---------- */
 /* ---------- Login flow (Production) ---------- */
 async function loginUser(){
   const email = dom.login.email.value.trim().toLowerCase();
@@ -1245,19 +1221,6 @@ async function sendEmailsForOrder(){
   pendingOrder.items.forEach(item => {
     orderDetailsDisplay += `• ${item.name}: ${item.qty} ${t('dozen')} - ${formatCurrency(item.total)}\n`;
   });
-
-  // Build email to Danely
-  const danelyEmail = 'danely@live.com'; // <-- REPLACE with Danely's real email
-  const subjectToDanely = encodeURIComponent(`New Order of Tamales from ${pendingOrder.name}`);
-  const bodyToDanely = encodeURIComponent(
-    `New order received:\n\nName: ${pendingOrder.name}\nEmail: ${pendingOrder.email}\nPhone: ${pendingOrder.phone || 'N/A'}\n\nORDER:\n${orderDetails}\nGRAND TOTAL: ${formatCurrency(pendingOrder.grandTotal)}\n\nPickup: Danely's House\nPayment: Cash only`
-  );
-
-  // Build confirmation email to user
-  const subjectToCustomer = encodeURIComponent(`Your Order of Tamales Confirmation`);
-  const bodyToCustomer = encodeURIComponent(
-    `Hi ${pendingOrder.name}!\n\nThanks for your order:\n\n${orderDetails}\nGrand Total Due: ${formatCurrency(pendingOrder.grandTotal)} (Cash at pickup)\nPickup at: Danely's House\n\nSee you soon!`
-  );
 
 await fetch(`${API_URL}/api`, {
   method: 'POST',
