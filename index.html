@@ -785,10 +785,20 @@ dom.verify.resend.addEventListener('click', resendVerification);
 dom.verify.back.addEventListener('click', ()=>switchTo('signup'));
 dom.login.loginButton.addEventListener('click', loginUser);
 dom.logoutBtn.addEventListener('click', ()=>{
+  // Clear current user and session
   currentUser=null;
   appData.session=null;
+
+  // Reset all tamale quantities to zero
+  TAMALES_DATA.forEach(tamale => {
+    qty[tamale.id] = 0;
+  });
+
+  // Hide account button
   const goAccountBtn = document.getElementById('goAccount');
   if(goAccountBtn) goAccountBtn.classList.add('hidden');
+
+  // Return to home (this will re-render with zero quantities)
   switchTo('home');
 });
 const backToHomeBtn = document.getElementById('backToHome');
