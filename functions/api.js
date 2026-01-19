@@ -1,6 +1,10 @@
+import { Resend } from 'resend';
+
 // Cloudflare Pages Function for handling API requests
 // This file handles all database operations for users and orders
 export async function onRequest({ request, env }) {
+  const resend = new Resend(env.RESEND_API_KEY);
+
   const url = new URL(request.url);
 
   const corsHeaders = {
@@ -67,6 +71,80 @@ export async function onRequest({ request, env }) {
 
     // Handle POST requests (creating/updating data)
     if (request.method === 'POST') {
+      if (action === 'sendVerificationEmail') {
+        const { email, code } = body;
+
+        if (!email || !code) {
+          return new Response(JSON.stringify({ error: 'Email and code required' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        await resend.emails.send({
+          from: env.FROM_EMAIL,
+          to: email,
+          subject: 'Your Tamales de Danely verification code',
+          html: `
+            <h2>Verify your email</h2>
+            <p>Your verification code is:</p>
+            <h1 style="letter-spacing:4px">${code}</h1>
+            <p>This code expires in 10 minutes.</p>
+          `
+        });
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
+      if (action === 'sendOrderEmails') {
+        const { order } = body;
+
+        if (!order || !order.email || !order.items) {
+          return new Response(JSON.stringify({ error: 'Invalid order payload' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          });
+        }
+
+        const itemsHtml = order.items.map(item =>
+          `<li>${item.qty} dozen ${item.name} — $${item.total.toFixed(2)}</li>`
+        ).join('');
+
+        // Email to Danely
+        await resend.emails.send({
+          from: env.FROM_EMAIL,
+          to: env.DANELY_EMAIL,
+          subject: `New Tamales Order — ${order.name}`,
+          html: `
+            <h2>New Order</h2>
+            <p><strong>Name:</strong> ${order.name}</p>
+            <p><strong>Email:</strong> ${order.email}</p>
+            <p><strong>Phone:</strong> ${order.phone || 'N/A'}</p>
+            <ul>${itemsHtml}</ul>
+            <h3>Total: $${order.grandTotal.toFixed(2)}</h3>
+          `
+        });
+
+        // Confirmation to customer
+        await resend.emails.send({
+          from: env.FROM_EMAIL,
+          to: order.email,
+          subject: 'Your Tamales Order Confirmation',
+          html: `
+            <h2>Thanks for your order, ${order.name}!</h2>
+            <ul>${itemsHtml}</ul>
+            <h3>Total Due: $${order.grandTotal.toFixed(2)}</h3>
+            <p>Payment: Cash at pickup</p>
+          `
+        });
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        });
+      }
+
       const body = await request.json();
       const { action } = body;
 
