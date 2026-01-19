@@ -358,6 +358,8 @@ thismonth: "This Month's Tamales (Order by Jan 22)",
 placeOrder: "Place Order",
 deleteOrder: "Delete",
 confirmDelete: "Are you sure you want to delete this order?",
+orderPlaced: "Your order has been placed.",
+orderPlacedTitle: "Order Confirmed!",
 createAccount: "Create Account",
 back: "Back",
 name: "Name",
@@ -405,6 +407,8 @@ thismonth: "Tamales de este mes (Ordena antes del 22 de Enero)",
 placeOrder: "Realice la Orden",
 deleteOrder: "Eliminar",
 confirmDelete: "¿Está seguro de que desea eliminar esta orden?",
+orderPlaced: "Su orden ha sido realizada.",
+orderPlacedTitle: "¡Orden Confirmada!",
 createAccount: "Crear Cuenta",
 back: "Atrás",
 name: "Nombre",
@@ -435,7 +439,7 @@ pickup: "Recoger en: Casa de Danely",
 orderSummary: "Resumen del Pedido",
 item: "Artículo",
 quantity: "Cantidad",
-price: "Precio",
+price: "Price",
 subtotal: "Subtotal",
 total: "Total",
 dozen: "docena",
@@ -1229,6 +1233,12 @@ async function sendEmailsForOrder(){
     orderDetails += `${item.name}: ${item.qty} dozen @ ${formatCurrency(item.pricePerDozen)}/dozen = ${formatCurrency(item.total)}\n`;
   });
 
+  // Build order details for display (with proper formatting)
+  let orderDetailsDisplay = '';
+  pendingOrder.items.forEach(item => {
+    orderDetailsDisplay += `• ${item.name}: ${item.qty} ${t('dozen')} - ${formatCurrency(item.total)}\n`;
+  });
+
   // Build email to Danely
   const danelyEmail = 'danely@live.com'; // <-- REPLACE with Danely's real email
   const subjectToDanely = encodeURIComponent(`New Order of Tamales from ${pendingOrder.name}`);
@@ -1246,6 +1256,9 @@ async function sendEmailsForOrder(){
   const mailtoDanely = `mailto:${danelyEmail}?subject=${subjectToDanely}&body=${bodyToDanely}`;
   const mailtoCustomer = `mailto:${pendingOrder.email}?subject=${subjectToCustomer}&body=${bodyToCustomer}`;
 
+  // Show confirmation message with order details
+  alert(`${t('orderPlaced')}\n\n${orderDetailsDisplay}\n${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}\n\n${t('pickup')}`);
+
   // open both (this will prompt user's mail client; some browsers open only 1, so we attempt both)
   window.location.href = mailtoDanely;
   setTimeout(()=> {
@@ -1253,9 +1266,15 @@ async function sendEmailsForOrder(){
     window.location.href = mailtoCustomer;
   }, 600);
 
-  alert('Order placed successfully! You can view it in your account.');
-  // clear pending
+  // Reset all tamale quantities to zero after order is placed
+  TAMALES_DATA.forEach(tamale => {
+    qty[tamale.id] = 0;
+  });
+
+  // clear pending order
   pendingOrder = null;
+
+  // Return to home page with reset quantities
   switchTo('home');
 }
 
