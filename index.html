@@ -374,7 +374,7 @@ thismonth: "This Month's Tamales (Order by Jan 22)",
 placeOrder: "Place Order",
 deleteOrder: "Delete",
 confirmDelete: "Are you sure you want to delete this order?",
-orderPlaced: "Your order has been placed.",
+orderPlaced: "Your order has been placed! Check your email for confirmation.",
 orderPlacedTitle: "Order Confirmed!",
 createAccount: "Create Account",
 back: "Back",
@@ -399,7 +399,7 @@ logout: "Log Out",
 confirmTitle: "Order Summary",
 placeOrderBtn: "Place Order",
 modifyOrder: "Modify Order",
-confirmHint: "This will open your email client with the order prefilled for Danely and a confirmation to you.",
+confirmHint: "Your order will be saved and confirmation emails will be sent.",
 note: "No shipping. Pickup only at Danely's House. Cash only.",
 footer: "© 2025 Armando Gomez. All rights reserved.",
 pickup: "Pickup at: Danely's House",
@@ -423,7 +423,7 @@ thismonth: "Tamales de este mes (Ordena antes del 22 de Enero)",
 placeOrder: "Realice la Orden",
 deleteOrder: "Eliminar",
 confirmDelete: "¿Está seguro de que desea eliminar esta orden?",
-orderPlaced: "Su orden ha sido realizada.",
+orderPlaced: "¡Su orden ha sido realizada! Revise su correo para confirmación.",
 orderPlacedTitle: "¡Orden Confirmada!",
 createAccount: "Crear Cuenta",
 back: "Atrás",
@@ -448,7 +448,7 @@ logout: "Cerrar sesión",
 confirmTitle: "Resumen del Pedido",
 placeOrderBtn: "Realice la Orden",
 modifyOrder: "Modifique la Orden",
-confirmHint: "Esto abrirá su cliente de correo electrónico con el pedido prellenado para Danely y una confirmación para usted.",
+confirmHint: "Su pedido será guardado y se enviarán correos de confirmación.",
 note: "No se realizan envíos. Recogida únicamente en casa de Danely. Solo se acepta pago en efectivo.",
 footer: "© 2025 Armando Gomez. Todos los derechos reservados.",
 pickup: "Recoger en: Casa de Danely",
@@ -462,44 +462,29 @@ dozen: "docena",
 }
 };
 
-// TAMALES DATA - Update this array to add/modify available tamales
-// Structure: {id, emoji, nameEN, nameES, descEN, descES, pricePerDozen}
 const TAMALES_DATA = [
-    {
-        id: 'chicken-green',
-        emoji: '🫔',
-        nameEN: 'Chicken in Green Sauce',
-        nameES: 'Pollo en Salsa Verde',
-        descEN: 'Traditional handmade chicken tamales in green sauce.',
-        descES: 'Tamales tradicionales de pollo hechos a mano en salsa verde.',
-        pricePerDozen: 30
-    },
-    {
-        id: 'chicken-mole',
-        emoji: '🫔',
-        nameEN: 'Chicken in Mole',
-        nameES: 'Pollo en Mole',
-        descEN: 'Traditional handmade chicken tamales in mole.',
-        descES: 'Tamales tradicionales de pollo hechos a mano en mole.',
-        pricePerDozen: 30
-    },
-// Add more tamales here as they become available
-// Example:
-// {
-//   id: 'pork-red',
-//   emoji: '🫔',
-//   nameEN: 'Pork in Red Sauce',
-//   nameES: 'Puerco en Salsa Roja',
-//   descEN: 'Savory pork tamales in traditional red sauce.',
-//   descES: 'Tamales de puerco en salsa roja tradicional.',
-//   pricePerDozen: 32
-// },
+{
+id: 'chicken-green',
+emoji: '🫔',
+nameEN: 'Chicken in Green Sauce',
+nameES: 'Pollo en Salsa Verde',
+descEN: 'Traditional handmade chicken tamales in green sauce.',
+descES: 'Tamales tradicionales de pollo hechos a mano en salsa verde.',
+pricePerDozen: 30
+},
+{
+id: 'chicken-mole',
+emoji: '🫔',
+nameEN: 'Chicken in Mole',
+nameES: 'Pollo en Mole',
+descEN: 'Traditional handmade chicken tamales in mole.',
+descES: 'Tamales tradicionales de pollo hechos a mano en mole.',
+pricePerDozen: 30
+}
 ];
 
-// Configuration - Your Pages site URL
-const API_URL = ''; // Empty string for same domain (Pages Functions)
+const API_URL = '';
 
-// Use in-memory storage for orders and session only
 let appData = {
 lang: 'en',
 orders: [],
@@ -507,24 +492,22 @@ session: null
 };
 
 let LANG = appData.lang;
-let qty = {}; // Store quantities per tamale ID
+let qty = {};
 let currentUser = null;
-let currentVerification = null; // stores {email, code}
+let currentVerification = null;
 let pendingOrder = null;
 
-// Initialize quantities for all tamales
 TAMALES_DATA.forEach(tamale => {
 qty[tamale.id] = 0;
 });
 
-/* ---------- DOM refs ---------- */
 const views = {
-home:document.getElementById('home'),
-signup:document.getElementById('signup'),
-verify:document.getElementById('verify'),
-login:document.getElementById('login'),
-account:document.getElementById('account'),
-confirm:document.getElementById('confirm'),
+home: document.getElementById('home'),
+signup: document.getElementById('signup'),
+verify: document.getElementById('verify'),
+login: document.getElementById('login'),
+account: document.getElementById('account'),
+confirm: document.getElementById('confirm')
 };
 
 const dom = {
@@ -543,7 +526,7 @@ inputs: {
 name: document.getElementById('name'),
 birthday: document.getElementById('birthday'),
 email: document.getElementById('email'),
-phone: document.getElementById('phone'),
+phone: document.getElementById('phone')
 },
 verify: {
 sentTo: document.getElementById('sent-to'),
@@ -556,7 +539,7 @@ login: {
 email: document.getElementById('loginEmail'),
 bday: document.getElementById('loginBday'),
 loginButton: document.getElementById('loginButton'),
-back: document.getElementById('backFromLogin'),
+back: document.getElementById('backFromLogin')
 },
 accountInfo: document.getElementById('accountInfo'),
 pastOrders: document.getElementById('pastOrders'),
@@ -564,102 +547,105 @@ logoutBtn: document.getElementById('logoutBtn'),
 confirmSummary: document.getElementById('confirm-summary'),
 placeOrderBtn2: document.getElementById('placeOrderBtn2'),
 modifyOrder: document.getElementById('modifyOrder'),
-footerText: document.getElementById('footer-text'),
+footerText: document.getElementById('footer-text')
 };
 
-/* ---------- Helpers ---------- */
-function t(key){
+function showToast(message, isError = false) {
+const toast = document.createElement('div');
+toast.style.cssText = `
+position: fixed;
+top: 20px;
+left: 50%;
+transform: translateX(-50%);
+background: ${isError ? '#E65100' : '#2E7D32'};
+color: white;
+padding: 1em 2em;
+border-radius: 8px;
+z-index: 9999;
+box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+animation: slideDown 0.3s ease;
+max-width: 90%;
+text-align: center;
+`;
+toast.textContent = message;
+document.body.appendChild(toast);
+setTimeout(() => {
+toast.style.animation = 'slideUp 0.3s ease';
+setTimeout(() => toast.remove(), 300);
+}, 3000);
+}
+
+function t(key) {
 return STRINGS[LANG][key] || STRINGS.en[key] || key;
 }
-function switchTo(view){
-Object.values(views).forEach(v=>v.classList.add('hidden'));
+
+function switchTo(view) {
+Object.values(views).forEach(v => v.classList.add('hidden'));
 views[view].classList.remove('hidden');
-if(view==='home') renderHome();
-if(view==='account') renderAccount();
-if(view==='confirm') renderConfirm();
+if (view === 'home') renderHome();
+if (view === 'account') renderAccount();
+if (view === 'confirm') renderConfirm();
 }
 
-function formatCurrency(n){ return `$${(n).toFixed(2)}`; }
-
-// This is the old function that only saved users to memory not DB
-/*
-function saveUserToStorage(user){
-const existing = appData.users.find(u=>u.email===user.email);
-if(existing){
-Object.assign(existing,user);
-} else appData.users.push(user);
-}
-*/
-
-// This is the new function to store users to DB
-async function saveUserToStorage(user){
-  try {
-    const response = await fetch(`${API_URL}/api`, {  // Changed from /api/users to /api
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'createUser',
-        ...user
-      })
-    });
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error saving user:', error);
-    alert('Error saving user data. Please try again.');
-  }
+function formatCurrency(n) {
+return `$${(n).toFixed(2)}`;
 }
 
-// This is the old function for the login user only from memory
-/*
-function loadUserByEmail(email){
-return appData.users.find(u=>u.email===email) || null;
+async function saveUserToStorage(user) {
+try {
+const response = await fetch(`${API_URL}/api`, {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+action: 'createUser',
+...user
+})
+});
+const data = await response.json();
+return data;
+} catch (error) {
+console.error('Error saving user:', error);
+showToast('Error saving user data. Please try again.', true);
 }
-*/
-
-// This is the new function for the login user from DB
-async function loadUserByEmail(email){
-  try {
-    const response = await fetch(`${API_URL}/api?action=getUser&email=${encodeURIComponent(email)}`);  // Changed URL
-    const data = await response.json();
-    return data.user || null;
-  } catch (error) {
-    console.error('Error loading user:', error);
-    return null;
-  }
-}
-
-// Save order both to database and in-memory for immediate display
-async function saveOrder(order){
-  // Save to D1 database
-  const result = await saveOrderToDB(order);
-  console.log('saveOrderToDB result:', result); // DEBUG
-  if(result && result.success) {
-    // Also save to memory for immediate display (optional, since we load from DB)
-    appData.orders.unshift({...order, id: result.orderId});
-    return result;  // ADD THIS LINE - Return the result so caller can check if it worked
-  }
-  return null;  // ADD THIS LINE - Return null if save failed
 }
 
-function renderHome(){
-// Show/hide auth buttons based on login status
+async function loadUserByEmail(email) {
+try {
+const response = await fetch(`${API_URL}/api?action=getUser&email=${encodeURIComponent(email)}`);
+const data = await response.json();
+return data.user || null;
+} catch (error) {
+console.error('Error loading user:', error);
+return null;
+}
+}
+
+async function saveOrder(order) {
+const result = await saveOrderToDB(order);
+console.log('saveOrderToDB result:', result);
+if (result && result.success) {
+appData.orders.unshift({...order, id: result.orderId});
+return result;
+}
+return null;
+}
+
+function renderHome() {
 const authButtons = document.getElementById('auth-buttons');
 const loggedInCard = document.getElementById('logged-in-card');
 const loggedInName = document.getElementById('logged-in-name');
 const loggedInText = document.getElementById('logged-in-text');
 
-if(currentUser) {
-  authButtons.classList.add('hidden');
-  loggedInCard.classList.remove('hidden');
-  loggedInName.textContent = currentUser.name;
-  loggedInText.textContent = t('loggedInAs');
+if (currentUser) {
+authButtons.classList.add('hidden');
+loggedInCard.classList.remove('hidden');
+loggedInName.textContent = currentUser.name;
+loggedInText.textContent = t('loggedInAs');
 } else {
-  authButtons.classList.remove('hidden');
-  loggedInCard.classList.add('hidden');
+authButtons.classList.remove('hidden');
+loggedInCard.classList.add('hidden');
 }
 
-// Render all available tamales
 const container = dom.tamalesContainer;
 container.innerHTML = '';
 
@@ -689,12 +675,11 @@ card.innerHTML = `
 container.appendChild(card);
 });
 
-// Attach event listeners to quantity buttons
 document.querySelectorAll('.qty-minus').forEach(btn => {
 btn.addEventListener('click', (e) => {
 const id = e.target.dataset.id;
 const tamale = TAMALES_DATA.find(t => t.id === id);
-if(qty[id] > 0) {
+if (qty[id] > 0) {
 qty[id]--;
 updateTamaleQty(id, tamale);
 }
@@ -705,7 +690,7 @@ document.querySelectorAll('.qty-plus').forEach(btn => {
 btn.addEventListener('click', (e) => {
 const id = e.target.dataset.id;
 const tamale = TAMALES_DATA.find(t => t.id === id);
-if(qty[id] < 20) {
+if (qty[id] < 20) {
 qty[id]++;
 updateTamaleQty(id, tamale);
 }
@@ -713,27 +698,24 @@ updateTamaleQty(id, tamale);
 });
 }
 
-function updateTamaleQty(id, tamale){
+function updateTamaleQty(id, tamale) {
 const currentQty = qty[id];
 document.querySelector(`.count[data-id="${id}"]`).textContent = currentQty.toString();
 const total = currentQty * tamale.pricePerDozen;
 document.querySelector(`.total-amount[data-id="${id}"]`).textContent = formatCurrency(total);
 
-// Update minus button disabled state
 const minusBtn = document.querySelector(`.qty-minus[data-id="${id}"]`);
 minusBtn.disabled = (currentQty === 0);
 
-// Update card fade state
 const card = document.querySelector(`.menu-card[data-card-id="${id}"]`);
-if(currentQty === 0) {
+if (currentQty === 0) {
 card.classList.add('faded');
 } else {
 card.classList.remove('faded');
 }
 }
 
-/* ---------- Init / Lang ---------- */
-function applyLang(){
+function applyLang() {
 dom.brand.textContent = t('brand');
 dom.heroTitle.textContent = t('heroTitle');
 dom.heroSub.textContent = t('heroSub');
@@ -750,7 +732,7 @@ document.getElementById('label-bday').textContent = t('bday');
 document.getElementById('label-email').textContent = t('email');
 document.getElementById('label-phone').textContent = t('phone');
 document.getElementById('verify-title').textContent = t('verifyTitle');
-dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification?currentVerification.email:''}`;
+dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification ? currentVerification.email : ''}`;
 document.getElementById('submitCode').textContent = t('submit');
 document.getElementById('resendCode').textContent = t('resend');
 document.getElementById('backFromVerify').textContent = t('back');
@@ -767,30 +749,36 @@ document.getElementById('placeOrderBtn2').textContent = t('placeOrderBtn');
 document.getElementById('modifyOrder').textContent = t('modifyOrder');
 document.getElementById('confirm-hint').textContent = t('confirmHint');
 const goAccountBtn = document.getElementById('goAccount');
-if(goAccountBtn) goAccountBtn.textContent = t('account');
+if (goAccountBtn) goAccountBtn.textContent = t('account');
 const backToHomeBtn = document.getElementById('backToHome');
-if(backToHomeBtn) backToHomeBtn.textContent = t('backToMenu');
+if (backToHomeBtn) backToHomeBtn.textContent = t('backToMenu');
 const logoutBtn = document.getElementById('logoutBtn');
-if(logoutBtn) logoutBtn.textContent = t('logout');
+if (logoutBtn) logoutBtn.textContent = t('logout');
 dom.footerText.textContent = t('footer');
-renderHome(); // Re-render tamales with new language
+renderHome();
 }
 
-function init(){
-// wire events
-dom.btnEn.addEventListener('click',()=>{LANG='en';appData.lang='en'; applyLang();});
-dom.btnEs.addEventListener('click',()=>{LANG='es';appData.lang='es'; applyLang();});
-dom.brand.addEventListener('click', ()=>switchTo('home'));
-dom.goSignUp.addEventListener('click', ()=>switchTo('signup'));
-dom.goLogin.addEventListener('click', ()=>switchTo('login'));
+function init() {
+dom.btnEn.addEventListener('click', () => {
+LANG = 'en';
+appData.lang = 'en';
+applyLang();
+});
+dom.btnEs.addEventListener('click', () => {
+LANG = 'es';
+appData.lang = 'es';
+applyLang();
+});
+dom.brand.addEventListener('click', () => switchTo('home'));
+dom.goSignUp.addEventListener('click', () => switchTo('signup'));
+dom.goLogin.addEventListener('click', () => switchTo('login'));
 
 const goAccountBtn = document.getElementById('goAccount');
-if(goAccountBtn) goAccountBtn.addEventListener('click', ()=>switchTo('account'));
+if (goAccountBtn) goAccountBtn.addEventListener('click', () => switchTo('account'));
 
-dom.placeOrderBtn.addEventListener('click', ()=> {
-// require login
-if(!currentUser){
-alert('Please log in or sign up to place an order.');
+dom.placeOrderBtn.addEventListener('click', () => {
+if (!currentUser) {
+showToast('Please log in or sign up to place an order.', true);
 switchTo('login');
 return;
 }
@@ -799,576 +787,425 @@ switchTo('confirm');
 });
 
 dom.createAccount.addEventListener('click', createAccountFlow);
-dom.goBackFromSignup && dom.goBackFromSignup.addEventListener('click', ()=>switchTo('home'));
+dom.goBackFromSignup && dom.goBackFromSignup.addEventListener('click', () => switchTo('home'));
 dom.verify.submitCode.addEventListener('click', submitVerificationCode);
 dom.verify.resend.addEventListener('click', resendVerification);
-dom.verify.back.addEventListener('click', ()=>switchTo('signup'));
+dom.verify.back.addEventListener('click', () => switchTo('signup'));
 dom.login.loginButton.addEventListener('click', loginUser);
-dom.logoutBtn.addEventListener('click', ()=>{
-  // Clear current user and session
-  currentUser=null;
-  appData.session=null;
+dom.logoutBtn.addEventListener('click', () => {
+currentUser = null;
+appData.session = null;
 
-  // Reset all tamale quantities to zero
-  TAMALES_DATA.forEach(tamale => {
-    qty[tamale.id] = 0;
-  });
+TAMALES_DATA.forEach(tamale => {
+qty[tamale.id] = 0;
+});
 
-  // Hide account button
-  const goAccountBtn = document.getElementById('goAccount');
-  if(goAccountBtn) goAccountBtn.classList.add('hidden');
+const goAccountBtn = document.getElementById('goAccount');
+if (goAccountBtn) goAccountBtn.classList.add('hidden');
 
-  // Return to home (this will re-render with zero quantities)
-  switchTo('home');
+switchTo('home');
 });
 const backToHomeBtn = document.getElementById('backToHome');
-if(backToHomeBtn) backToHomeBtn.addEventListener('click', ()=>switchTo('home'));
-dom.login.back.addEventListener('click', ()=>switchTo('home'));
+if (backToHomeBtn) backToHomeBtn.addEventListener('click', () => switchTo('home'));
+dom.login.back.addEventListener('click', () => switchTo('home'));
 dom.placeOrderBtn2.addEventListener('click', sendEmailsForOrder);
-dom.modifyOrder.addEventListener('click', ()=>switchTo('home'));
+dom.modifyOrder.addEventListener('click', () => switchTo('home'));
 
 applyLang();
 renderHome();
-switchTo(currentUser ? 'home' : 'home'); // start on home
+switchTo('home');
 }
 
-/* ---------- Signup flow (Prototype) ---------- */
-/* obsoleted by new Signup flow (production)
-function createAccountFlow(){
+async function createAccountFlow() {
 const name = dom.inputs.name.value.trim();
 const bday = dom.inputs.birthday.value;
 const email = dom.inputs.email.value.trim().toLowerCase();
 const phone = dom.inputs.phone.value.trim();
 
-if(!name||!email){
-alert('Please provide your name and email.');
+if (!name || !email) {
+showToast('Please provide your name and email.', true);
 return;
 }
-// save basic user
-const user = {name, birthday:bday, email, phone, createdAt: new Date().toISOString()};
-saveUserToStorage(user);
 
-// create verification code and "send" it
 const code = Math.floor(100000 + Math.random() * 900000).toString();
-currentVerification = {email, code, createdAt: Date.now()};
-dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
-// For prototype: show the code in a friendly modal area so tester can continue.
-alert(`(Prototype) Verification code sent: ${code}`);
-// In production: call your server to send an email to ${email} with the code.
-switchTo('verify');
-}
-*/
+const code_created_at = Date.now();
 
-/* ---------- Signup flow (Production) ---------- */
-// New account flow function
-async function createAccountFlow(){
-  const name = dom.inputs.name.value.trim();
-  const bday = dom.inputs.birthday.value;
-  const email = dom.inputs.email.value.trim().toLowerCase();
-  const phone = dom.inputs.phone.value.trim();
-
-  if(!name||!email){
-    alert('Please provide your name and email.');
-    return;
-  }
-
-  // Create verification code
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const code_created_at = Date.now();
-
-  // Save user with verification code
-  const user = {
-    name,
-    birthday: bday,
-    email,
-    phone,
-    verification_code: code,
-    code_created_at: code_created_at,
-    createdAt: new Date().toISOString()
-  };
+const user = {
+name,
+birthday: bday,
+email,
+phone,
+verification_code: code,
+code_created_at: code_created_at,
+createdAt: new Date().toISOString()
+};
 
 await fetch(`${API_URL}/api`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    action: 'sendVerificationEmail',
-    email,
-    name,
-    code
-  })
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+action: 'sendVerificationEmail',
+email,
+name,
+code
+})
 });
 
-currentVerification = { email, code, createdAt: code_created_at };
+currentVerification = {email, code, createdAt: code_created_at};
 dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
 switchTo('verify');
-
 }
 
-// Old verification code function just compared with memory
-/*
-function submitVerificationCode(){
+async function submitVerificationCode() {
 const entered = dom.verify.codeInput.value.trim();
-if(!currentVerification){
-alert('No verification pending. Please sign up or request a code.');
+if (!currentVerification) {
+showToast('No verification pending. Please sign up or request a code.', true);
 return;
 }
-if(entered === currentVerification.code){
-// mark user as logged in
-currentUser = loadUserByEmail(currentVerification.email);
-appData.session = {email:currentUser.email};
+
+try {
+const response = await fetch(`${API_URL}/api`, {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+action: 'verifyUser',
+email: currentVerification.email,
+code: entered
+})
+});
+
+const data = await response.json();
+
+if (data.success) {
+currentUser = data.user;
+appData.session = {email: currentUser.email};
 currentVerification = null;
-dom.verify.codeInput.value='';
-alert('Verified! You are now logged in.');
+dom.verify.codeInput.value = '';
+const goAccountBtn = document.getElementById('goAccount');
+if (goAccountBtn) goAccountBtn.classList.remove('hidden');
+showToast('Verified! You are now logged in.');
 switchTo('home');
 } else {
-alert('Code incorrect. Try Resend.');
+showToast('Code incorrect. Try Resend.', true);
+}
+} catch (error) {
+console.error('Verification error:', error);
+showToast('Error verifying code. Please try again.', true);
 }
 }
-*/
 
-//New Verification Code function compared with DB
-async function submitVerificationCode(){
-  const entered = dom.verify.codeInput.value.trim();
-  if(!currentVerification){
-    alert('No verification pending. Please sign up or request a code.');
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_URL}/api`, {  // Changed URL
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'verifyUser',
-        email: currentVerification.email,
-        code: entered
-      })
-    });
-
-    const data = await response.json();
-
-    if(data.success){
-      currentUser = data.user;
-      appData.session = {email: currentUser.email};
-      currentVerification = null;
-      dom.verify.codeInput.value='';
-      const goAccountBtn = document.getElementById('goAccount');
-      if(goAccountBtn) goAccountBtn.classList.remove('hidden');
-      alert('Verified! You are now logged in.');
-      switchTo('home');
-    } else {
-      alert('Code incorrect. Try Resend.');
-    }
-  } catch (error) {
-    console.error('Verification error:', error);
-    alert('Error verifying code. Please try again.');
-  }
-}
-
-async function resendVerification(){
-  if(!currentVerification) {
-    alert('No verification in progress.');
-    return;
-  }
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-
-  try {
-    await fetch(`${API_URL}/api`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'sendVerificationEmail',
-        email: currentVerification.email,
-        code
-      })
-    });
-
-    currentVerification.code = code;
-    currentVerification.createdAt = Date.now();
-    dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
-
-    alert('A new verification code has been sent to your email.');
-  } catch (err) {
-    console.error(err);
-    alert('Failed to resend verification email.');
-  }
-}
-
-
-/* ---------- Login flow (Production) ---------- */
-async function loginUser(){
-  const email = dom.login.email.value.trim().toLowerCase();
-  const bday = dom.login.bday.value;
-
-  if(!email || !bday) {
-    alert('Please provide both email and birthday.');
-    return;
-  }
-
-  const user = await loadUserByEmail(email);
-
-  if(!user) {
-    alert('No account found with that email. Please sign up.');
-    return;
-  }
-
-  // Check if birthday matches
-  if(user.birthday !== bday) {
-    alert('Birthday does not match our records. Please try again.');
-    return;
-  }
-
-  // Login successful
-  currentUser = user;
-  appData.session = {email: currentUser.email};
-  const goAccountBtn = document.getElementById('goAccount');
-  if(goAccountBtn) goAccountBtn.classList.remove('hidden');
-
-  // Clear login fields
-  dom.login.email.value = '';
-  dom.login.bday.value = '';
-
-  alert('Logged in successfully!');
-  switchTo('home');
-}
-
-// Old Account render function only from memory
-/* ---------- Account render ---------- */
-/*
-function renderAccount(){
-if(!currentUser){
-dom.accountInfo.textContent = 'Not logged in';
-dom.pastOrders.textContent = 'No past orders';
+async function resendVerification() {
+if (!currentVerification) {
+showToast('No verification in progress.', true);
 return;
 }
-dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUser.email}<br>${currentUser.phone||''}`;
-const orders = appData.orders.filter(o=>o.email===currentUser.email);
-if(!orders.length) dom.pastOrders.textContent = 'No past orders';
-else {
-dom.pastOrders.innerHTML = orders.map(o=>{
+
+const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+try {
+await fetch(`${API_URL}/api`, {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+action: 'sendVerificationEmail',
+email: currentVerification.email,
+code
+})
+});
+
+currentVerification.code = code;
+currentVerification.createdAt = Date.now();
+dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
+
+showToast('A new verification code has been sent to your email.');
+} catch (err) {
+console.error(err);
+showToast('Failed to resend verification email.', true);
+}
+}
+
+async function loginUser() {
+const email = dom.login.email.value.trim().toLowerCase();
+const bday = dom.login.bday.value;
+
+if (!email || !bday) {
+showToast('Please provide both email and birthday.', true);
+return;
+}
+
+const user = await loadUserByEmail(email);
+
+if (!user) {
+showToast('No account found with that email. Please sign up.', true);
+return;
+}
+
+if (user.birthday !== bday) {
+showToast('Birthday does not match our records. Please try again.', true);
+return;
+}
+
+currentUser = user;
+appData.session = {email: currentUser.email};
+const goAccountBtn = document.getElementById('goAccount');
+if (goAccountBtn) goAccountBtn.classList.remove('hidden');
+
+dom.login.email.value = '';
+dom.login.bday.value = '';
+
+showToast('Logged in successfully!');
+switchTo('home');
+}
+
+async function renderAccount() {
+if (!currentUser) {
+dom.accountInfo.textContent = 'Not logged in';
+dom.pastOrders.textContent = t('noPastOrders');
+return;
+}
+
+const freshUser = await loadUserByEmail(currentUser.email);
+if (freshUser) {
+currentUser = freshUser;
+}
+
+dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUser.email}<br>${currentUser.phone || ''}`;
+
+const orders = await loadOrdersFromDB(currentUser.email);
+
+if (!orders.length) {
+dom.pastOrders.textContent = t('noPastOrders');
+} else {
+dom.pastOrders.innerHTML = orders.map(o => {
 let itemsText = o.items.map(item => `${item.qty} doz ${item.name}`).join(', ');
-return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total: ${formatCurrency(o.grandTotal)}<br><span class="small muted">${new Date(o.createdAt).toLocaleString()}</span></div>`;
+return `
+<div style="margin-bottom:0.75em;padding:0.75em;background:rgba(255,255,255,0.5);border-radius:0.5em;">
+<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.375em;">
+<strong style="flex:1">${itemsText}</strong>
+<button
+class="delete-order-btn"
+data-order-id="${o.id}"
+style="background:var(--cta);color:var(--cta-text);border:none;padding:0.375em 0.75em;border-radius:0.375em;cursor:pointer;font-size:0.75em;font-weight:600;"
+>
+${t('deleteOrder')}
+</button>
+</div>
+<div>Total: ${formatCurrency(o.grand_total)}</div>
+<div class="small muted">${new Date(o.created_at).toLocaleString()}</div>
+</div>
+`;
 }).join('');
+
+document.querySelectorAll('.delete-order-btn').forEach(btn => {
+btn.addEventListener('click', async (e) => {
+const orderId = parseInt(e.target.dataset.orderId);
+if (confirm(t('confirmDelete'))) {
+const success = await deleteOrderFromDB(orderId, currentUser.email);
+if (success) {
+renderAccount();
+} else {
+showToast('Error deleting order. Please try again.', true);
 }
 }
-*/
-
-// New Account render function from D1 database with delete functionality
-/* ---------- Account render ---------- */
-async function renderAccount(){
-  if(!currentUser){
-    dom.accountInfo.textContent = 'Not logged in';
-    dom.pastOrders.textContent = t('noPastOrders');
-    return;
-  }
-
-  // Fetch fresh user data from database
-  const freshUser = await loadUserByEmail(currentUser.email);
-  if(freshUser) {
-    currentUser = freshUser; // Update with latest data
-  }
-
-  // Display user information
-  dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUser.email}<br>${currentUser.phone||''}`;
-
-  // Load orders from D1 database
-  const orders = await loadOrdersFromDB(currentUser.email);
-
-  if(!orders.length) {
-    dom.pastOrders.textContent = t('noPastOrders');
-  } else {
-    // Render each order with delete button
-    dom.pastOrders.innerHTML = orders.map(o=>{
-      let itemsText = o.items.map(item => `${item.qty} doz ${item.name}`).join(', ');
-      return `
-        <div style="margin-bottom:0.75em;padding:0.75em;background:rgba(255,255,255,0.5);border-radius:0.5em;">
-          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.375em;">
-            <strong style="flex:1">${itemsText}</strong>
-            <button
-              class="delete-order-btn"
-              data-order-id="${o.id}"
-              style="background:var(--cta);color:var(--cta-text);border:none;padding:0.375em 0.75em;border-radius:0.375em;cursor:pointer;font-size:0.75em;font-weight:600;"
-            >
-              ${t('deleteOrder')}
-            </button>
-          </div>
-          <div>Total: ${formatCurrency(o.grand_total)}</div>
-          <div class="small muted">${new Date(o.created_at).toLocaleString()}</div>
-        </div>
-      `;
-    }).join('');
-
-    // Add event listeners to all delete buttons
-    document.querySelectorAll('.delete-order-btn').forEach(btn => {
-      btn.addEventListener('click', async (e) => {
-        const orderId = parseInt(e.target.dataset.orderId);
-        if(confirm(t('confirmDelete'))) {
-          const success = await deleteOrderFromDB(orderId, currentUser.email);
-          if(success) {
-            renderAccount(); // Re-render account page to show updated order list
-          } else {
-            alert('Error deleting order. Please try again.');
-          }
-        }
-      });
-    });
-  }
+});
+});
+}
 }
 
-/* ---------- Ordering Related Functions ---------- */
-function prepareOrder(){
-  if(!currentUser) {
-    // Don't use alert - show inline message instead
-    const msg = document.createElement('div');
-    msg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#E65100;color:white;padding:1em 2em;border-radius:8px;z-index:9999;';
-    msg.textContent = 'Please log in or sign up to place an order.';
-    document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), 3000);
-    switchTo('login');
-    return;
-  }
-
-  // Collect all tamales with quantity > 0
-  const orderItems = [];
-  let grandTotal = 0;
-
-  TAMALES_DATA.forEach(tamale => {
-    if(qty[tamale.id] > 0) {
-      const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
-      const itemTotal = qty[tamale.id] * tamale.pricePerDozen;
-      orderItems.push({
-        id: tamale.id,
-        name: tamale[nameKey],
-        qty: qty[tamale.id],
-        pricePerDozen: tamale.pricePerDozen,
-        total: itemTotal
-      });
-      grandTotal += itemTotal;
-    }
-  });
-
-  if(orderItems.length === 0) {
-    const msg = document.createElement('div');
-    msg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#E65100;color:white;padding:1em 2em;border-radius:8px;z-index:9999;';
-    msg.textContent = 'Please add at least one dozen tamales to your order.';
-    document.body.appendChild(msg);
-    setTimeout(() => msg.remove(), 3000);
-    return;
-  }
-
-  pendingOrder = {
-    items: orderItems,
-    grandTotal,
-    email: currentUser.email,
-    name: currentUser.name,
-    phone: currentUser.phone,
-    createdAt: new Date().toISOString()
-  };
+function prepareOrder() {
+if (!currentUser) {
+showToast('Please log in or sign up to place an order.', true);
+switchTo('login');
+return;
 }
 
-function renderConfirm(){
-  if(!pendingOrder) {
-    dom.confirmSummary.textContent = 'No order prepared.';
-  } else {
-    // Build receipt-style summary
-    let summaryHTML = `
-      <div style="border-bottom:0.125em solid var(--accent-dark);padding-bottom:0.5em;margin-bottom:0.75em;">
-        <table style="width:100%;border-collapse:collapse;">
-          <thead>
-            <tr style="border-bottom:0.0625em solid rgba(0,0,0,0.1);">
-              <th style="text-align:left;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('item')}</th>
-              <th style="text-align:center;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('quantity')}</th>
-              <th style="text-align:right;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('price')}</th>
-            </tr>
-          </thead>
-          <tbody>
-    `;
+const orderItems = [];
+let grandTotal = 0;
 
-    pendingOrder.items.forEach(item => {
-      summaryHTML += `
-        <tr style="border-bottom:0.0625em solid rgba(0,0,0,0.05);">
-          <td style="padding:0.625em 0;font-weight:600">${item.name}</td>
-          <td style="text-align:center;padding:0.625em 0">${item.qty} ${t('dozen')}</td>
-          <td style="text-align:right;padding:0.625em 0">${formatCurrency(item.total)}</td>
-        </tr>
-      `;
-    });
+TAMALES_DATA.forEach(tamale => {
+if (qty[tamale.id] > 0) {
+const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
+const itemTotal = qty[tamale.id] * tamale.pricePerDozen;
+orderItems.push({
+id: tamale.id,
+name: tamale[nameKey],
+qty: qty[tamale.id],
+pricePerDozen: tamale.pricePerDozen,
+total: itemTotal
+});
+grandTotal += itemTotal;
+}
+});
 
-    summaryHTML += `
-          </tbody>
-        </table>
-      </div>
-      <div style="text-align:right;margin-top:0.75em;">
-        <div style="font-size:1.25em;font-weight:800;color:var(--accent-dark);margin-bottom:0.5em;">
-          ${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}
-        </div>
-        <div style="font-size:0.875em;color:var(--muted);margin-top:0.375em;">
-          ${t('pickup')}
-        </div>
-      </div>
-    `;
-
-    dom.confirmSummary.innerHTML = summaryHTML;
-  }
+if (orderItems.length === 0) {
+showToast('Please add at least one dozen tamales to your order.', true);
+return;
 }
 
-/* ---------- Helper to show toast messages ---------- */
-function showToast(message, isError = false) {
-  const toast = document.createElement('div');
-  toast.style.cssText = `
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: ${isError ? '#E65100' : '#2E7D32'};
-    color: white;
-    padding: 1em 2em;
-    border-radius: 8px;
-    z-index: 9999;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    animation: slideDown 0.3s ease;
-  `;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.animation = 'slideUp 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
+pendingOrder = {
+items: orderItems,
+grandTotal,
+email: currentUser.email,
+name: currentUser.name,
+phone: currentUser.phone,
+createdAt: new Date().toISOString()
+};
 }
 
-/* ---------- Email sending (Production - NO POPUPS) ---------- */
-async function sendEmailsForOrder(){
-  if(!pendingOrder) {
-    showToast('No order to send.', true);
-    return;
-  }
+function renderConfirm() {
+if (!pendingOrder) {
+dom.confirmSummary.textContent = 'No order prepared.';
+} else {
+let summaryHTML = `
+<div style="border-bottom:0.125em solid var(--accent-dark);padding-bottom:0.5em;margin-bottom:0.75em;">
+<table style="width:100%;border-collapse:collapse;">
+<thead>
+<tr style="border-bottom:0.0625em solid rgba(0,0,0,0.1);">
+<th style="text-align:left;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('item')}</th>
+<th style="text-align:center;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('quantity')}</th>
+<th style="text-align:right;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('price')}</th>
+</tr>
+</thead>
+<tbody>
+`;
 
-  console.log('Saving order:', pendingOrder);
+pendingOrder.items.forEach(item => {
+summaryHTML += `
+<tr style="border-bottom:0.0625em solid rgba(0,0,0,0.05);">
+<td style="padding:0.625em 0;font-weight:600">${item.name}</td>
+<td style="text-align:center;padding:0.625em 0">${item.qty} ${t('dozen')}</td>
+<td style="text-align:right;padding:0.625em 0">${formatCurrency(item.total)}</td>
+</tr>
+`;
+});
 
-  try {
-    // Show loading state
-    dom.placeOrderBtn2.disabled = true;
-    dom.placeOrderBtn2.textContent = 'Processing...';
+summaryHTML += `
+</tbody>
+</table>
+</div>
+<div style="text-align:right;margin-top:0.75em;">
+<div style="font-size:1.25em;font-weight:800;color:var(--accent-dark);margin-bottom:0.5em;">
+${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}
+</div>
+<div style="font-size:0.875em;color:var(--muted);margin-top:0.375em;">
+${t('pickup')}
+</div>
+</div>
+`;
 
-    // First, save order to D1 database
-    const saveResult = await saveOrder(pendingOrder);
-    console.log('Save result:', saveResult);
-
-    if (!saveResult || !saveResult.success) {
-      throw new Error('Failed to save order');
-    }
-
-    // Then, send emails via API
-    const emailResponse = await fetch(`${API_URL}/api`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'sendOrderEmails',
-        order: pendingOrder
-      })
-    });
-
-    const emailResult = await emailResponse.json();
-    console.log('Email result:', emailResult);
-
-    if (emailResult.success) {
-      showToast(t('orderPlaced') || 'Order placed successfully!');
-    } else {
-      showToast('Order saved! Confirmation email will be sent shortly.');
-    }
-
-    // Reset quantities and clear pending order
-    TAMALES_DATA.forEach(tamale => {
-      qty[tamale.id] = 0;
-    });
-    pendingOrder = null;
-
-    // Return to home page
-    setTimeout(() => switchTo('home'), 1500);
-
-  } catch (error) {
-    console.error('Error placing order:', error);
-    showToast('Error placing order. Please try again.', true);
-
-    // Re-enable button
-    dom.placeOrderBtn2.disabled = false;
-    dom.placeOrderBtn2.textContent = t('placeOrderBtn');
-  }
+dom.confirmSummary.innerHTML = summaryHTML;
+}
 }
 
-// Save order to D1 database via API
-async function saveOrderToDB(order){
-  try {
-    console.log('Calling API to save order...');
-    const response = await fetch(`${API_URL}/api`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'createOrder',
-        user_email: order.email,
-        user_name: order.name,
-        user_phone: order.phone,
-        items: order.items,
-        grand_total: order.grandTotal,
-        created_at: order.createdAt
-      })
-    });
-    const data = await response.json();
-    console.log('API response:', data);
-    return data;
-  } catch (error) {
-    console.error('Error saving order:', error);
-    return null;
-  }
+async function sendEmailsForOrder() {
+if (!pendingOrder) {
+showToast('No order to send.', true);
+return;
 }
 
-// Save order both to database and in-memory for immediate display
-async function saveOrder(order){
-  const result = await saveOrderToDB(order);
-  console.log('saveOrderToDB result:', result);
-  if(result && result.success) {
-    appData.orders.unshift({...order, id: result.orderId});
-    return result;
-  }
-  return null;
+console.log('Saving order:', pendingOrder);
+
+try {
+dom.placeOrderBtn2.disabled = true;
+dom.placeOrderBtn2.textContent = 'Processing...';
+
+const saveResult = await saveOrder(pendingOrder);
+console.log('Save result:', saveResult);
+
+if (!saveResult || !saveResult.success) {
+throw new Error('Failed to save order');
 }
 
-// Load all orders for a user from D1 database via API
-async function loadOrdersFromDB(email){
-  try {
-    console.log('Loading orders for:', email);
-    const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
-    const data = await response.json();
-    console.log('Orders loaded:', data.orders);
-    return data.orders || [];
-  } catch (error) {
-    console.error('Error loading orders:', error);
-    return [];
-  }
+const emailResponse = await fetch(`${API_URL}/api`, {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+action: 'sendOrderEmails',
+order: pendingOrder
+})
+});
+
+const emailResult = await emailResponse.json();
+console.log('Email result:', emailResult);
+
+if (emailResult.success) {
+showToast(t('orderPlaced'));
+} else {
+showToast('Order saved! Confirmation email will be sent shortly.');
 }
 
-// Delete a specific order from D1 database via API
-async function deleteOrderFromDB(orderId, userEmail){
-  try {
-    const response = await fetch(`${API_URL}/api`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'deleteOrder',
-        orderId: orderId,
-        userEmail: userEmail
-      })
-    });
-    const data = await response.json();
-    return data.success;
-  } catch (error) {
-    console.error('Error deleting order:', error);
-    return false;
-  }
+TAMALES_DATA.forEach(tamale => {
+qty[tamale.id] = 0;
+});
+pendingOrder = null;
+
+setTimeout(() => switchTo('home'), 1500);
+
+} catch (error) {
+console.error('Error placing order:', error);
+showToast('Error placing order. Please try again.', true);
+
+dom.placeOrderBtn2.disabled = false;
+dom.placeOrderBtn2.textContent = t('placeOrderBtn');
+}
 }
 
-// Initialize app
+async function saveOrderToDB(order) {
+try {
+console.log('Calling API to save order...');
+const response = await fetch(`${API_URL}/api`, {
+method: 'POST',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+action: 'createOrder',
+user_email: order.email,
+user_name: order.name,
+user_phone: order.phone,
+items: order.items,
+grand_total: order.grandTotal,
+created_at: order.createdAt
+})
+});
+const data = await response.json();
+console.log('API response:', data);
+return data;
+} catch (error) {
+console.error('Error saving order:', error);
+return null;
+}
+}
+
+async function loadOrdersFromDB(email) {
+try {
+console.log('Loading orders for:', email);
+const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
+const data = await response.json();
+console.log('Orders loaded:', data.orders);
+return data.orders || [];
+} catch (error) {
+console.error('Error loading orders:', error);
+return [];
+}
+}
+
+async function deleteOrderFromDB(orderId, userEmail) {
+try {
+const response = await fetch(`${API_URL}/api`, {
+method: 'DELETE',
+headers: {'Content-Type': 'application/json'},
+body: JSON.stringify({
+action: 'deleteOrder',
+orderId: orderId,
+userEmail: userEmail
+})
+});
+const data = await response.json();
+return data.success;
+} catch (error) {
+console.error('Error deleting order:', error);
+return false;
+}
+}
 init();
 </script>
 
