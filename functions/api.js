@@ -253,9 +253,9 @@ export async function onRequest({ request, env }) {
                 
                 <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 8px;">
                   <p style="margin: 0 0 10px 0;"><strong>📍 Pickup Details:</strong></p>
-                  <p style="margin: 5px 0;">📍 Danely's House<br>
-                  💵 Cash only, please<br>
-                  📅 Pickup by January 22nd</p>
+                    <p style="margin: 5px 0;">📍 Danely's House<br>
+                    💵 Cash only, please<br>
+                    📅 Pickup on January 26th</p>
                 </div>
                 
                 <p style="margin-top: 20px;">We'll contact you when your order is ready for pickup!</p>
