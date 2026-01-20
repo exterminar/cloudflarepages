@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tamales de Danely</title>
 <style>
+/* somethings never change */
 /* ---------- Base / Theme (Mexican traditional) ---------- */
 :root{
 --bg:#FFEFD5; /* light parchment */
@@ -282,7 +283,9 @@ We will send a 6-digit verification code to your email to finish signing up.
 <button id="submitCode" class="btn primary" style="flex:1">Submit</button>
 <button id="resendCode" class="btn ghost" style="flex:1">Resend</button>
 </div>
-<p id="verify-hint" class="muted small">For this prototype the code is shown on screen after "sending". In production, integrate a server-side email service.</p>
+<p id="verify-hint" class="muted small">
+Check your email for the 6-digit verification code.
+</p>
 </div>
 <div style="padding:0 1.125em 1.125em;">
 <button id="backFromVerify" class="linkish">Back</button>
@@ -295,11 +298,13 @@ We will send a 6-digit verification code to your email to finish signing up.
 <h3 id="login-title">Log In</h3>
 <label for="loginEmail" id="label-login-email">Email</label>
 <input id="loginEmail" type="email" placeholder="you@example.com">
+<label for="loginBday" id="label-login-bday">Birthday</label>
+<input id="loginBday" type="date">
 <div style="display:flex;gap:0.625em;">
-<button id="sendLoginCode" class="btn primary" style="flex:1">Send Log In Code</button>
+<button id="loginButton" class="btn primary" style="flex:1">Log In</button>
 <button id="backFromLogin" class="btn ghost" style="flex:1">Back</button>
 </div>
-<p class="muted small" id="login-hint">We will send a 6-digit code to your email to log in.</p>
+<p class="muted small" id="login-hint">Enter your email and birthday to log in.</p>
 </div>
 </section>
 
@@ -323,14 +328,16 @@ We will send a 6-digit verification code to your email to finish signing up.
 
 <!-- CONFIRMATION -->
 <section id="confirm" class="view hidden">
-<div class="card center">
-<h3 id="confirm-title">Order Ready to Send</h3>
-<p id="confirm-summary" class="muted small"></p>
-<div style="display:flex;gap:0.625em;margin-top:0.75em;">
-<button id="sendEmails" class="btn primary" style="flex:1">Send Emails</button>
-<button id="editOrder" class="btn ghost" style="flex:1">Edit</button>
+<div class="card">
+<h3 id="confirm-title" class="center">Order Summary</h3>
+<div id="confirm-summary" style="margin-top:1em"></div>
+<div style="display:flex;gap:0.625em;margin-top:1em;">
+<button id="placeOrderBtn2" class="btn primary" style="flex:1">Place Order</button>
+<button id="modifyOrder" class="btn ghost" style="flex:1">Modify Order</button>
 </div>
-<p class="muted small" style="margin-top:0.625em">This will open your email client with the order prefilled for Danely and a confirmation to you.</p>
+<p class="muted small center" id="confirm-hint">
+Your order will be emailed to Danely and a confirmation will be sent to you.
+</p>
 </div>
 </section>
 
@@ -353,7 +360,11 @@ logIn: "Log In",
 account: "Account",
 loggedInAs: "Logged in as:",
 thismonth: "This Month's Tamales (Order by Jan 22)",
-placeOrder: "Send my order",
+placeOrder: "Place Order",
+deleteOrder: "Delete",
+confirmDelete: "Are you sure you want to delete this order?",
+orderPlaced: "Your order has been placed.",
+orderPlacedTitle: "Order Confirmed!",
 createAccount: "Create Account",
 back: "Back",
 name: "Name",
@@ -365,19 +376,29 @@ sentTo: "We sent a 6-digit code to",
 submit: "Submit",
 resend: "Resend",
 loginTitle: "Log In",
-sendLoginCode: "Send Log In Code",
-loginHint: "We will send a 6-digit code to your email to log in.",
+loginEmailLabel: "Email",
+loginBdayLabel: "Birthday",
+loginButton: "Log In",
+loginHint: "Enter your email and birthday to log in.",
 accountTitle: "My Account",
 pastOrders: "Past Orders",
 noPastOrders: "No past orders",
 backToMenu: "Back to Menu",
 logout: "Log Out",
-confirmTitle: "Order Ready to Send",
-sendEmails: "Send Emails",
-editOrder: "Edit",
+confirmTitle: "Order Summary",
+placeOrderBtn: "Place Order",
+modifyOrder: "Modify Order",
+confirmHint: "This will open your email client with the order prefilled for Danely and a confirmation to you.",
 note: "No shipping. Pickup only at Danely's House. Cash only.",
 footer: "© 2025 Armando Gomez. All rights reserved.",
 pickup: "Pickup at: Danely's House",
+orderSummary: "Order Summary",
+item: "Item",
+quantity: "Quantity",
+price: "Price",
+subtotal: "Subtotal",
+total: "Total",
+dozen: "dozen",
 },
 es: {
 brand: "Tamales de Danely",
@@ -388,7 +409,11 @@ logIn: "Iniciar Sesión",
 account: "Cuenta",
 loggedInAs: "Conectado como:",
 thismonth: "Tamales de este mes (Ordena antes del 22 de Enero)",
-placeOrder: "Envía mi orden",
+placeOrder: "Realice la Orden",
+deleteOrder: "Eliminar",
+confirmDelete: "¿Está seguro de que desea eliminar esta orden?",
+orderPlaced: "Su orden ha sido realizada.",
+orderPlacedTitle: "¡Orden Confirmada!",
 createAccount: "Crear Cuenta",
 back: "Atrás",
 name: "Nombre",
@@ -400,19 +425,29 @@ sentTo: "Enviamos un código de 6 dígitos a",
 submit: "Enviar",
 resend: "Reenviar",
 loginTitle: "Iniciar Sesión",
-sendLoginCode: "Enviar Código para Iniciar Sesión",
-loginHint: "Le enviaremos un código de 6 dígitos a su correo electrónico para que pueda iniciar sesión.",
+loginEmailLabel: "Correo electrónico",
+loginBdayLabel: "Fecha de nacimiento",
+loginButton: "Iniciar Sesión",
+loginHint: "Ingrese su correo electrónico y fecha de nacimiento para iniciar sesión.",
 accountTitle: "Mi Cuenta",
 pastOrders: "Pedidos Anteriores",
 noPastOrders: "No pedidos anteriores",
 backToMenu: "Regresar al Menú",
 logout: "Cerrar sesión",
-confirmTitle: "Pedido listo para enviar",
-sendEmails: "Enviar correos",
-editOrder: "Editar",
+confirmTitle: "Resumen del Pedido",
+placeOrderBtn: "Realice la Orden",
+modifyOrder: "Modifique la Orden",
+confirmHint: "Esto abrirá su cliente de correo electrónico con el pedido prellenado para Danely y una confirmación para usted.",
 note: "No se realizan envíos. Recogida únicamente en casa de Danely. Solo se acepta pago en efectivo.",
 footer: "© 2025 Armando Gomez. Todos los derechos reservados.",
 pickup: "Recoger en: Casa de Danely",
+orderSummary: "Resumen del Pedido",
+item: "Artículo",
+quantity: "Cantidad",
+price: "Price",
+subtotal: "Subtotal",
+total: "Total",
+dozen: "docena",
 }
 };
 
@@ -508,15 +543,16 @@ back: document.getElementById('backFromVerify')
 },
 login: {
 email: document.getElementById('loginEmail'),
-sendLoginCode: document.getElementById('sendLoginCode'),
+bday: document.getElementById('loginBday'),
+loginButton: document.getElementById('loginButton'),
 back: document.getElementById('backFromLogin'),
 },
 accountInfo: document.getElementById('accountInfo'),
 pastOrders: document.getElementById('pastOrders'),
 logoutBtn: document.getElementById('logoutBtn'),
 confirmSummary: document.getElementById('confirm-summary'),
-sendEmails: document.getElementById('sendEmails'),
-editOrder: document.getElementById('editOrder'),
+placeOrderBtn2: document.getElementById('placeOrderBtn2'),
+modifyOrder: document.getElementById('modifyOrder'),
 footerText: document.getElementById('footer-text'),
 };
 
@@ -582,8 +618,17 @@ async function loadUserByEmail(email){
   }
 }
 
-function saveOrder(order){
-appData.orders.unshift(order);
+// Save order both to database and in-memory for immediate display
+async function saveOrder(order){
+  // Save to D1 database
+  const result = await saveOrderToDB(order);
+  console.log('saveOrderToDB result:', result); // DEBUG
+  if(result && result.success) {
+    // Also save to memory for immediate display (optional, since we load from DB)
+    appData.orders.unshift({...order, id: result.orderId});
+    return result;  // ADD THIS LINE - Return the result so caller can check if it worked
+  }
+  return null;  // ADD THIS LINE - Return null if save failed
 }
 
 function renderHome(){
@@ -699,14 +744,17 @@ document.getElementById('submitCode').textContent = t('submit');
 document.getElementById('resendCode').textContent = t('resend');
 document.getElementById('backFromVerify').textContent = t('back');
 document.getElementById('login-title').textContent = t('loginTitle');
-document.getElementById('sendLoginCode').textContent = t('sendLoginCode');
+document.getElementById('label-login-email').textContent = t('loginEmailLabel');
+document.getElementById('label-login-bday').textContent = t('loginBdayLabel');
+document.getElementById('loginButton').textContent = t('loginButton');
 document.getElementById('backFromLogin').textContent = t('back');
 document.getElementById('login-hint').textContent = t('loginHint');
 document.getElementById('account-title').textContent = t('accountTitle');
 document.getElementById('past-orders-title').textContent = t('pastOrders');
 document.getElementById('confirm-title').textContent = t('confirmTitle');
-document.getElementById('sendEmails').textContent = t('sendEmails');
-document.getElementById('editOrder').textContent = t('editOrder');
+document.getElementById('placeOrderBtn2').textContent = t('placeOrderBtn');
+document.getElementById('modifyOrder').textContent = t('modifyOrder');
+document.getElementById('confirm-hint').textContent = t('confirmHint');
 const goAccountBtn = document.getElementById('goAccount');
 if(goAccountBtn) goAccountBtn.textContent = t('account');
 const backToHomeBtn = document.getElementById('backToHome');
@@ -744,19 +792,29 @@ dom.goBackFromSignup && dom.goBackFromSignup.addEventListener('click', ()=>switc
 dom.verify.submitCode.addEventListener('click', submitVerificationCode);
 dom.verify.resend.addEventListener('click', resendVerification);
 dom.verify.back.addEventListener('click', ()=>switchTo('signup'));
-dom.login.sendLoginCode.addEventListener('click', sendLoginCode);
+dom.login.loginButton.addEventListener('click', loginUser);
 dom.logoutBtn.addEventListener('click', ()=>{
+  // Clear current user and session
   currentUser=null;
   appData.session=null;
+
+  // Reset all tamale quantities to zero
+  TAMALES_DATA.forEach(tamale => {
+    qty[tamale.id] = 0;
+  });
+
+  // Hide account button
   const goAccountBtn = document.getElementById('goAccount');
   if(goAccountBtn) goAccountBtn.classList.add('hidden');
+
+  // Return to home (this will re-render with zero quantities)
   switchTo('home');
 });
 const backToHomeBtn = document.getElementById('backToHome');
 if(backToHomeBtn) backToHomeBtn.addEventListener('click', ()=>switchTo('home'));
 dom.login.back.addEventListener('click', ()=>switchTo('home'));
-dom.sendEmails.addEventListener('click', sendEmailsForOrder);
-dom.editOrder.addEventListener('click', ()=>switchTo('home'));
+dom.placeOrderBtn2.addEventListener('click', sendEmailsForOrder);
+dom.modifyOrder.addEventListener('click', ()=>switchTo('home'));
 
 applyLang();
 renderHome();
@@ -818,14 +876,21 @@ async function createAccountFlow(){
     createdAt: new Date().toISOString()
   };
 
-  await saveUserToStorage(user);
+await fetch(`${API_URL}/api`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    action: 'sendVerificationEmail',
+    email,
+    name,
+    code
+  })
+});
 
-  currentVerification = {email, code, createdAt: code_created_at};
-  dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
+currentVerification = { email, code, createdAt: code_created_at };
+dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
+switchTo('verify');
 
-  // For prototype: show the code
-  alert(`(Prototype) Verification code sent: ${code}`);
-  switchTo('verify');
 }
 
 // Old verification code function just compared with memory
@@ -889,93 +954,72 @@ async function submitVerificationCode(){
   }
 }
 
-// Old resend verification code function only showing from memory
-/*
-function resendVerification(){
-if(!currentVerification) return alert('No verification in progress.');
-// Generate new code
-const code = Math.floor(100000 + Math.random() * 900000).toString();
-currentVerification.code = code;
-currentVerification.createdAt = Date.now();
-// Show prototype code
-alert(`(Prototype) New verification code: ${code}`);
-dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
-}
-*/
-
-// New resend verification code function showing from DB
 async function resendVerification(){
-  if(!currentVerification) return alert('No verification in progress.');
+  if(!currentVerification) {
+    alert('No verification in progress.');
+    return;
+  }
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const code_created_at = Date.now();
 
   try {
-    await fetch(`${API_URL}/api`, {  // Changed URL
+    await fetch(`${API_URL}/api`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        action: 'updateVerification',
+        action: 'sendVerificationEmail',
         email: currentVerification.email,
-        verification_code: code,
-        code_created_at: code_created_at
+        code
       })
     });
 
     currentVerification.code = code;
-    currentVerification.createdAt = code_created_at;
-    alert(`(Prototype) New verification code: ${code}`);
+    currentVerification.createdAt = Date.now();
     dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
-  } catch (error) {
-    console.error('Error resending code:', error);
-    alert('Error resending code. Please try again.');
+
+    alert('A new verification code has been sent to your email.');
+  } catch (err) {
+    console.error(err);
+    alert('Failed to resend verification email.');
   }
 }
 
-// Obsoleted
-/* ---------- Login flow (prototype) ---------- */
-/*
-function sendLoginCode(){
-const email = dom.login.email.value.trim().toLowerCase();
-const user = loadUserByEmail(email);
-if(!user) return alert('No account found with that email. Please sign up.');
-const code = Math.floor(100000 + Math.random() * 900000).toString();
-currentVerification = {email, code, createdAt:Date.now()};
-alert(`(Prototype) Login code sent: ${code}`);
-switchTo('verify');
-}
-*/
 
-//New
 /* ---------- Login flow (Production) ---------- */
-async function sendLoginCode(){
+async function loginUser(){
   const email = dom.login.email.value.trim().toLowerCase();
+  const bday = dom.login.bday.value;
+
+  if(!email || !bday) {
+    alert('Please provide both email and birthday.');
+    return;
+  }
+
   const user = await loadUserByEmail(email);
 
-  if(!user) return alert('No account found with that email. Please sign up.');
-
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  const code_created_at = Date.now();
-
-  try {
-    await fetch(`${API_URL}/api`, {  // Changed URL
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'updateVerification',
-        email: email,
-        verification_code: code,
-        code_created_at: code_created_at
-      })
-    });
-
-    currentVerification = {email, code, createdAt: code_created_at};
-    alert(`(Prototype) Login code sent: ${code}`);
-    switchTo('verify');
-  } catch (error) {
-    console.error('Error sending login code:', error);
-    alert('Error sending login code. Please try again.');
+  if(!user) {
+    alert('No account found with that email. Please sign up.');
+    return;
   }
+
+  // Check if birthday matches
+  if(user.birthday !== bday) {
+    alert('Birthday does not match our records. Please try again.');
+    return;
+  }
+
+  // Login successful
+  currentUser = user;
+  appData.session = {email: currentUser.email};
+  const goAccountBtn = document.getElementById('goAccount');
+  if(goAccountBtn) goAccountBtn.classList.remove('hidden');
+
+  // Clear login fields
+  dom.login.email.value = '';
+  dom.login.bday.value = '';
+
+  alert('Logged in successfully!');
+  switchTo('home');
 }
 
 // Old Account render function only from memory
@@ -999,8 +1043,7 @@ return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total:
 }
 */
 
-// New Account render function from DB
-/* ---------- Account render ---------- */
+// New Account render function from D1 database with delete functionality
 /* ---------- Account render ---------- */
 async function renderAccount(){
   if(!currentUser){
@@ -1015,14 +1058,50 @@ async function renderAccount(){
     currentUser = freshUser; // Update with latest data
   }
 
+  // Display user information
   dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUser.email}<br>${currentUser.phone||''}`;
-  const orders = appData.orders.filter(o=>o.email===currentUser.email);
-  if(!orders.length) dom.pastOrders.textContent = t('noPastOrders');
-  else {
+
+  // Load orders from D1 database
+  const orders = await loadOrdersFromDB(currentUser.email);
+
+  if(!orders.length) {
+    dom.pastOrders.textContent = t('noPastOrders');
+  } else {
+    // Render each order with delete button
     dom.pastOrders.innerHTML = orders.map(o=>{
       let itemsText = o.items.map(item => `${item.qty} doz ${item.name}`).join(', ');
-      return `<div style="margin-bottom:0.5em"><strong>${itemsText}</strong><br>Total: ${formatCurrency(o.grandTotal)}<br><span class="small muted">${new Date(o.createdAt).toLocaleString()}</span></div>`;
+      return `
+        <div style="margin-bottom:0.75em;padding:0.75em;background:rgba(255,255,255,0.5);border-radius:0.5em;">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:0.375em;">
+            <strong style="flex:1">${itemsText}</strong>
+            <button
+              class="delete-order-btn"
+              data-order-id="${o.id}"
+              style="background:var(--cta);color:var(--cta-text);border:none;padding:0.375em 0.75em;border-radius:0.375em;cursor:pointer;font-size:0.75em;font-weight:600;"
+            >
+              ${t('deleteOrder')}
+            </button>
+          </div>
+          <div>Total: ${formatCurrency(o.grand_total)}</div>
+          <div class="small muted">${new Date(o.created_at).toLocaleString()}</div>
+        </div>
+      `;
     }).join('');
+
+    // Add event listeners to all delete buttons
+    document.querySelectorAll('.delete-order-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const orderId = parseInt(e.target.dataset.orderId);
+        if(confirm(t('confirmDelete'))) {
+          const success = await deleteOrderFromDB(orderId, currentUser.email);
+          if(success) {
+            renderAccount(); // Re-render account page to show updated order list
+          } else {
+            alert('Error deleting order. Please try again.');
+          }
+        }
+      });
+    });
   }
 }
 
@@ -1077,58 +1156,160 @@ dom.confirmSummary.textContent = summaryText;
 }
 
 function renderConfirm(){
-if(!pendingOrder) {
-dom.confirmSummary.textContent = 'No order prepared.';
-} else {
-let summaryText = '';
-pendingOrder.items.forEach(item => {
-summaryText += `${item.qty} dozen ${item.name} — ${formatCurrency(item.total)}\n`;
-});
-summaryText += `\nGrand Total: ${formatCurrency(pendingOrder.grandTotal)}\n${t('pickup')}`;
-dom.confirmSummary.textContent = summaryText;
+  if(!pendingOrder) {
+    dom.confirmSummary.textContent = 'No order prepared.';
+  } else {
+    // Build receipt-style summary
+    let summaryHTML = `
+      <div style="border-bottom:0.125em solid var(--accent-dark);padding-bottom:0.5em;margin-bottom:0.75em;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:0.0625em solid rgba(0,0,0,0.1);">
+              <th style="text-align:left;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('item')}</th>
+              <th style="text-align:center;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('quantity')}</th>
+              <th style="text-align:right;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('price')}</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    pendingOrder.items.forEach(item => {
+      summaryHTML += `
+        <tr style="border-bottom:0.0625em solid rgba(0,0,0,0.05);">
+          <td style="padding:0.625em 0;font-weight:600">${item.name}</td>
+          <td style="text-align:center;padding:0.625em 0">${item.qty} ${t('dozen')}</td>
+          <td style="text-align:right;padding:0.625em 0">${formatCurrency(item.total)}</td>
+        </tr>
+      `;
+    });
+
+    summaryHTML += `
+          </tbody>
+        </table>
+      </div>
+      <div style="text-align:right;margin-top:0.75em;">
+        <div style="font-size:1.25em;font-weight:800;color:var(--accent-dark);margin-bottom:0.5em;">
+          ${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}
+        </div>
+        <div style="font-size:0.875em;color:var(--muted);margin-top:0.375em;">
+          ${t('pickup')}
+        </div>
+      </div>
+    `;
+
+    dom.confirmSummary.innerHTML = summaryHTML;
+  }
 }
+
+/* ---------- Email sending (Production) ---------- */
+async function sendEmailsForOrder(){
+  if(!pendingOrder) return alert('No order to send.');
+
+  console.log('Saving order:', pendingOrder); // DEBUG
+
+  try {
+    // First, save order to D1 database
+    const saveResult = await saveOrder(pendingOrder);
+    console.log('Save result:', saveResult); // DEBUG
+
+    if (!saveResult || !saveResult.success) {
+      alert('Error saving order. Please try again.');
+      return;
+    }
+
+    // Then, send emails via API
+    const emailResponse = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'sendOrderEmails',
+        order: pendingOrder
+      })
+    });
+
+    const emailResult = await emailResponse.json();
+    console.log('Email result:', emailResult); // DEBUG
+
+    if (emailResult.success) {
+      alert('Order placed successfully! You will receive a confirmation email shortly.');
+    } else {
+      alert('Order saved, but there was an issue sending confirmation emails. We will contact you soon.');
+    }
+
+    // Reset quantities and clear pending order
+    TAMALES_DATA.forEach(tamale => {
+      qty[tamale.id] = 0;
+    });
+    pendingOrder = null;
+
+    // Return to home page
+    switchTo('home');
+
+  } catch (error) {
+    console.error('Error placing order:', error);
+    alert('There was an error placing your order. Please try again or contact us directly.');
+  }
 }
 
-/* ---------- Email sending (mailto prototype) ---------- */
-function sendEmailsForOrder(){
-if(!pendingOrder) return alert('No order to send.');
-// Save order locally
-saveOrder(pendingOrder);
+// Save order to D1 database via API
+// Save order both to database and in-memory for immediate display
+// Save order to D1 database via API
+async function saveOrderToDB(order){
+  try {
+    console.log('Calling API to save order...'); // DEBUG
+    const response = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'createOrder',
+        user_email: order.email,
+        user_name: order.name,
+        user_phone: order.phone,
+        items: order.items,
+        grand_total: order.grandTotal,
+        created_at: order.createdAt
+      })
+    });
+    const data = await response.json();
+    console.log('API response:', data); // DEBUG
+    return data;
+  } catch (error) {
+    console.error('Error saving order:', error);
+    return null;
+  }
+}
 
-// Build order details for email
-let orderDetails = '';
-pendingOrder.items.forEach(item => {
-orderDetails += `${item.name}: ${item.qty} dozen @ ${formatCurrency(item.pricePerDozen)}/dozen = ${formatCurrency(item.total)}\n`;
-});
-
-// Build email to Danely
-const danelyEmail = 'danely@live.com'; // <-- REPLACE with Danely's real email
-const subjectToDanely = encodeURIComponent(`New Order of Tamales from ${pendingOrder.name}`);
-const bodyToDanely = encodeURIComponent(
-`New order received:\n\nName: ${pendingOrder.name}\nEmail: ${pendingOrder.email}\nPhone: ${pendingOrder.phone || 'N/A'}\n\nORDER:\n${orderDetails}\nGRAND TOTAL: ${formatCurrency(pendingOrder.grandTotal)}\n\nPickup: Danely's House\nPayment: Cash only`
-);
-
-// Build confirmation email to user
-const subjectToCustomer = encodeURIComponent(`Your Order of Tamales Confirmation`);
-const bodyToCustomer = encodeURIComponent(
-`Hi ${pendingOrder.name}!\n\nThanks for your order:\n\n${orderDetails}\nGrand Total Due: ${formatCurrency(pendingOrder.grandTotal)} (Cash at pickup)\nPickup at: Danely's House\n\nSee you soon!`
-);
-
-// Open Danely email in user's default mail client (mailto)
-const mailtoDanely = `mailto:${danelyEmail}?subject=${subjectToDanely}&body=${bodyToDanely}`;
-const mailtoCustomer = `mailto:${pendingOrder.email}?subject=${subjectToCustomer}&body=${bodyToCustomer}`;
-
-// open both (this will prompt user's mail client; some browsers open only 1, so we attempt both)
-window.location.href = mailtoDanely;
-setTimeout(()=> {
-// try customer mail shortly after
-window.location.href = mailtoCustomer;
-}, 600);
-
-alert('An email composer to Danely (and a confirmation to you) should open in your mail application. In production, replace this with a server-side email sender so messages are delivered automatically.');
-// clear pending
-pendingOrder = null;
-switchTo('home');
+// Load all orders for a user from D1 database via API
+async function loadOrdersFromDB(email){
+  try {
+    console.log('Loading orders for:', email); // DEBUG
+    const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
+    const data = await response.json();
+    console.log('Orders loaded:', data.orders); // DEBUG
+    return data.orders || [];
+  } catch (error) {
+    console.error('Error loading orders:', error);
+    return [];
+  }
+}
+// Delete a specific order from D1 database via API
+async function deleteOrderFromDB(orderId, userEmail){
+  try {
+    const response = await fetch(`${API_URL}/api`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'deleteOrder',
+        orderId: orderId,
+        userEmail: userEmail
+      })
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    return false;
+  }
 }
 
 // Initialize app

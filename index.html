@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Tamales de Danely</title>
 <style>
-/* somethings never change */
+/* 01/19/2026 - Armando Gomez */
 /* ---------- Base / Theme (Mexican traditional) ---------- */
 :root{
 --bg:#FFEFD5; /* light parchment */
@@ -201,6 +201,17 @@ header h1{font-size:1.5em}
 /* tiny utility */
 .hidden{display:none!important}
 .linkish{background:none;border:none;color:var(--accent-dark);text-decoration:underline;cursor:pointer;padding:0;font-size:0.8125em}
+
+@keyframes slideDown {
+  from { transform: translate(-50%, -100%); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 0); opacity: 1; }
+  to { transform: translate(-50%, -100%); opacity: 0; }
+}
+
 </style>
 </head>
 <body>
@@ -1105,54 +1116,55 @@ async function renderAccount(){
   }
 }
 
-/* ---------- Ordering ---------- */
+/* ---------- Ordering Related Functions ---------- */
 function prepareOrder(){
-if(!currentUser) {
-alert('Please login');
-return;
-}
+  if(!currentUser) {
+    // Don't use alert - show inline message instead
+    const msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#E65100;color:white;padding:1em 2em;border-radius:8px;z-index:9999;';
+    msg.textContent = 'Please log in or sign up to place an order.';
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+    switchTo('login');
+    return;
+  }
 
-// Collect all tamales with quantity > 0
-const orderItems = [];
-let grandTotal = 0;
+  // Collect all tamales with quantity > 0
+  const orderItems = [];
+  let grandTotal = 0;
 
-TAMALES_DATA.forEach(tamale => {
-if(qty[tamale.id] > 0) {
-const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
-const itemTotal = qty[tamale.id] * tamale.pricePerDozen;
-orderItems.push({
-id: tamale.id,
-name: tamale[nameKey],
-qty: qty[tamale.id],
-pricePerDozen: tamale.pricePerDozen,
-total: itemTotal
-});
-grandTotal += itemTotal;
-}
-});
+  TAMALES_DATA.forEach(tamale => {
+    if(qty[tamale.id] > 0) {
+      const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
+      const itemTotal = qty[tamale.id] * tamale.pricePerDozen;
+      orderItems.push({
+        id: tamale.id,
+        name: tamale[nameKey],
+        qty: qty[tamale.id],
+        pricePerDozen: tamale.pricePerDozen,
+        total: itemTotal
+      });
+      grandTotal += itemTotal;
+    }
+  });
 
-if(orderItems.length === 0) {
-alert('Please add at least one dozen tamales to your order.');
-return;
-}
+  if(orderItems.length === 0) {
+    const msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#E65100;color:white;padding:1em 2em;border-radius:8px;z-index:9999;';
+    msg.textContent = 'Please add at least one dozen tamales to your order.';
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+    return;
+  }
 
-pendingOrder = {
-items: orderItems,
-grandTotal,
-email: currentUser.email,
-name: currentUser.name,
-phone: currentUser.phone,
-createdAt: new Date().toISOString()
-};
-
-// Build summary text
-let summaryText = '';
-orderItems.forEach(item => {
-summaryText += `${item.qty} dozen ${item.name} — ${formatCurrency(item.total)}\n`;
-});
-summaryText += `\nGrand Total: ${formatCurrency(grandTotal)}\n${t('pickup')}`;
-
-dom.confirmSummary.textContent = summaryText;
+  pendingOrder = {
+    items: orderItems,
+    grandTotal,
+    email: currentUser.email,
+    name: currentUser.name,
+    phone: currentUser.phone,
+    createdAt: new Date().toISOString()
+  };
 }
 
 function renderConfirm(){
@@ -1201,20 +1213,50 @@ function renderConfirm(){
   }
 }
 
-/* ---------- Email sending (Production) ---------- */
-async function sendEmailsForOrder(){
-  if(!pendingOrder) return alert('No order to send.');
+/* ---------- Helper to show toast messages ---------- */
+function showToast(message, isError = false) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: ${isError ? '#E65100' : '#2E7D32'};
+    color: white;
+    padding: 1em 2em;
+    border-radius: 8px;
+    z-index: 9999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: slideDown 0.3s ease;
+  `;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'slideUp 0.3s ease';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
 
-  console.log('Saving order:', pendingOrder); // DEBUG
+/* ---------- Email sending (Production - NO POPUPS) ---------- */
+async function sendEmailsForOrder(){
+  if(!pendingOrder) {
+    showToast('No order to send.', true);
+    return;
+  }
+
+  console.log('Saving order:', pendingOrder);
 
   try {
+    // Show loading state
+    dom.placeOrderBtn2.disabled = true;
+    dom.placeOrderBtn2.textContent = 'Processing...';
+
     // First, save order to D1 database
     const saveResult = await saveOrder(pendingOrder);
-    console.log('Save result:', saveResult); // DEBUG
+    console.log('Save result:', saveResult);
 
     if (!saveResult || !saveResult.success) {
-      alert('Error saving order. Please try again.');
-      return;
+      throw new Error('Failed to save order');
     }
 
     // Then, send emails via API
@@ -1228,12 +1270,12 @@ async function sendEmailsForOrder(){
     });
 
     const emailResult = await emailResponse.json();
-    console.log('Email result:', emailResult); // DEBUG
+    console.log('Email result:', emailResult);
 
     if (emailResult.success) {
-      alert('Order placed successfully! You will receive a confirmation email shortly.');
+      showToast(t('orderPlaced') || 'Order placed successfully!');
     } else {
-      alert('Order saved, but there was an issue sending confirmation emails. We will contact you soon.');
+      showToast('Order saved! Confirmation email will be sent shortly.');
     }
 
     // Reset quantities and clear pending order
@@ -1243,20 +1285,22 @@ async function sendEmailsForOrder(){
     pendingOrder = null;
 
     // Return to home page
-    switchTo('home');
+    setTimeout(() => switchTo('home'), 1500);
 
   } catch (error) {
     console.error('Error placing order:', error);
-    alert('There was an error placing your order. Please try again or contact us directly.');
+    showToast('Error placing order. Please try again.', true);
+
+    // Re-enable button
+    dom.placeOrderBtn2.disabled = false;
+    dom.placeOrderBtn2.textContent = t('placeOrderBtn');
   }
 }
 
 // Save order to D1 database via API
-// Save order both to database and in-memory for immediate display
-// Save order to D1 database via API
 async function saveOrderToDB(order){
   try {
-    console.log('Calling API to save order...'); // DEBUG
+    console.log('Calling API to save order...');
     const response = await fetch(`${API_URL}/api`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1271,7 +1315,7 @@ async function saveOrderToDB(order){
       })
     });
     const data = await response.json();
-    console.log('API response:', data); // DEBUG
+    console.log('API response:', data);
     return data;
   } catch (error) {
     console.error('Error saving order:', error);
@@ -1279,19 +1323,31 @@ async function saveOrderToDB(order){
   }
 }
 
+// Save order both to database and in-memory for immediate display
+async function saveOrder(order){
+  const result = await saveOrderToDB(order);
+  console.log('saveOrderToDB result:', result);
+  if(result && result.success) {
+    appData.orders.unshift({...order, id: result.orderId});
+    return result;
+  }
+  return null;
+}
+
 // Load all orders for a user from D1 database via API
 async function loadOrdersFromDB(email){
   try {
-    console.log('Loading orders for:', email); // DEBUG
+    console.log('Loading orders for:', email);
     const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
     const data = await response.json();
-    console.log('Orders loaded:', data.orders); // DEBUG
+    console.log('Orders loaded:', data.orders);
     return data.orders || [];
   } catch (error) {
     console.error('Error loading orders:', error);
     return [];
   }
 }
+
 // Delete a specific order from D1 database via API
 async function deleteOrderFromDB(orderId, userEmail){
   try {
