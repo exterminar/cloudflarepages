@@ -149,16 +149,16 @@ background:#fff;
   border-radius:0.75em;
   padding:0.2em;
 
-  /* Gradient + corn husk texture */
+  /* Gradient + corn husk texture with dynamic color */
   background:
     repeating-linear-gradient(
       135deg,
-      rgba(255,255,255,0.18) 0px,
-      rgba(255,255,255,0.18) 6px,
-      rgba(255,255,255,0.08) 6px,
-      rgba(255,255,255,0.08) 12px
+      rgba(255,255,255,0.18) 0em,
+      rgba(255,255,255,0.18) 0.375em,
+      rgba(255,255,255,0.08) 0.375em,
+      rgba(255,255,255,0.08) 0.75em
     ),
-    linear-gradient(180deg,#FFB66B,#FF9E3D);
+    linear-gradient(180deg, var(--tamale-color, #FFB66B), color-mix(in srgb, var(--tamale-color, #FFB66B) 70%, black));
 
   background-blend-mode: overlay;
 
@@ -476,7 +476,8 @@ nameEN: 'Chicken in Green Sauce',
 nameES: 'Pollo en Salsa Verde',
 descEN: 'Traditional handmade chicken tamales in green sauce.',
 descES: 'Tamales tradicionales de pollo hechos a mano en salsa verde.',
-pricePerDozen: 30
+pricePerDozen: 30,
+color: '#4CAF50'  // Green color
 },
 {
 id: 'chicken-mole',
@@ -485,7 +486,8 @@ nameEN: 'Chicken in Mole',
 nameES: 'Pollo en Mole',
 descEN: 'Traditional handmade chicken tamales in mole.',
 descES: 'Tamales tradicionales de pollo hechos a mano en mole.',
-pricePerDozen: 30
+pricePerDozen: 30,
+color: '#6B4423'  // Brown/mole color
 }
 ];
 
@@ -636,35 +638,11 @@ return result;
 return null;
 }
 
-function renderHome() {
-const authButtons = document.getElementById('auth-buttons');
-const loggedInCard = document.getElementById('logged-in-card');
-const loggedInName = document.getElementById('logged-in-name');
-const loggedInText = document.getElementById('logged-in-text');
-
-if (currentUser) {
-authButtons.classList.add('hidden');
-loggedInCard.classList.remove('hidden');
-loggedInName.textContent = currentUser.name;
-loggedInText.textContent = t('loggedInAs');
-} else {
-authButtons.classList.remove('hidden');
-loggedInCard.classList.add('hidden');
-}
-
-const container = dom.tamalesContainer;
-container.innerHTML = '';
-
-TAMALES_DATA.forEach(tamale => {
-const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
-const descKey = LANG === 'es' ? 'descES' : 'descEN';
-const priceText = LANG === 'es' ? `${tamale.pricePerDozen} / docena` : `${tamale.pricePerDozen} / dozen`;
-
 const card = document.createElement('div');
 card.className = 'card';
 card.innerHTML = `
 <div class="menu-card" data-card-id="${tamale.id}">
-<div class="tamale-illus">${tamale.emoji}</div>
+<div class="tamale-illus" style="--tamale-color: ${tamale.color}">${tamale.emoji}</div>
 <div class="menu-right">
 <div style="font-weight:800;font-size:1.125em">${tamale[nameKey]}</div>
 <div class="muted">${tamale[descKey]}</div>
@@ -678,31 +656,6 @@ card.innerHTML = `
 </div>
 </div>
 `;
-container.appendChild(card);
-});
-
-document.querySelectorAll('.qty-minus').forEach(btn => {
-btn.addEventListener('click', (e) => {
-const id = e.target.dataset.id;
-const tamale = TAMALES_DATA.find(t => t.id === id);
-if (qty[id] > 0) {
-qty[id]--;
-updateTamaleQty(id, tamale);
-}
-});
-});
-
-document.querySelectorAll('.qty-plus').forEach(btn => {
-btn.addEventListener('click', (e) => {
-const id = e.target.dataset.id;
-const tamale = TAMALES_DATA.find(t => t.id === id);
-if (qty[id] < 20) {
-qty[id]++;
-updateTamaleQty(id, tamale);
-}
-});
-});
-}
 
 function updateTamaleQty(id, tamale) {
 const currentQty = qty[id];
