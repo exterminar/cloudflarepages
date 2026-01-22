@@ -596,11 +596,11 @@ return STRINGS[LANG][key] || STRINGS.en[key] || key;
 }
 
 function switchTo(view) {
-Object.values(views).forEach(v => v.classList.add('hidden'));
-views[view].classList.remove('hidden');
-if (view === 'home') renderHome();
-if (view === 'account') renderAccount();
-if (view === 'confirm') renderConfirm();
+  Object.values(views).forEach(v => v.classList.add('hidden'));
+  views[view].classList.remove('hidden');
+  if (view === 'home') renderHome();
+  if (view === 'account') renderAccount();  // Make sure this line exists
+  if (view === 'confirm') renderConfirm();
 }
 
 function formatCurrency(n) {
@@ -1002,6 +1002,9 @@ dom.accountInfo.innerHTML = `<strong>${currentUser.name}</strong><br>${currentUs
 
 const orders = await loadOrdersFromDB(currentUser.email);
 
+  // *** ADD THIS DEBUG LINE ***
+  console.log('Orders for current user:', orders);
+
 if (!orders.length) {
 dom.pastOrders.textContent = t('noPastOrders');
 } else {
@@ -1127,56 +1130,60 @@ dom.confirmSummary.innerHTML = summaryHTML;
 }
 
 async function sendEmailsForOrder() {
-if (!pendingOrder) {
-showToast('No order to send.', true);
-return;
-}
+  if (!pendingOrder) {
+    showToast('No order to send.', true);
+    return;
+  }
 
-console.log('Saving order:', pendingOrder);
+  console.log('Saving order:', pendingOrder);
 
-try {
-dom.placeOrderBtn2.disabled = true;
-dom.placeOrderBtn2.textContent = 'Processing...';
+  try {
+    dom.placeOrderBtn2.disabled = true;
+    dom.placeOrderBtn2.textContent = 'Processing...';
 
-const saveResult = await saveOrder(pendingOrder);
-console.log('Save result:', saveResult);
+    const saveResult = await saveOrder(pendingOrder);
+    console.log('Save result:', saveResult);
 
-if (!saveResult || !saveResult.success) {
-throw new Error('Failed to save order');
-}
+    if (!saveResult || !saveResult.success) {
+      throw new Error('Failed to save order');
+    }
 
-const emailResponse = await fetch(`${API_URL}/api`, {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-action: 'sendOrderEmails',
-order: pendingOrder
-})
-});
+    const emailResponse = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'sendOrderEmails',
+        order: pendingOrder
+      })
+    });
 
-const emailResult = await emailResponse.json();
-console.log('Email result:', emailResult);
+    const emailResult = await emailResponse.json();
+    console.log('Email result:', emailResult);
 
-if (emailResult.success) {
-showToast(t('orderPlaced'));
-} else {
-showToast('Order saved! Confirmation email will be sent shortly.');
-}
+    if (emailResult.success) {
+      showToast(t('orderPlaced'));
+    } else {
+      showToast('Order saved! Confirmation email will be sent shortly.');
+    }
 
-TAMALES_DATA.forEach(tamale => {
-qty[tamale.id] = 0;
-});
-pendingOrder = null;
+    TAMALES_DATA.forEach(tamale => {
+      qty[tamale.id] = 0;
+    });
+    pendingOrder = null;
 
-setTimeout(() => switchTo('home'), 1500);
+    // *** ADD THESE TWO LINES ***
+    // Reload inventory from database to reflect the new quantities
+    await loadInventoryFromDB();
 
-} catch (error) {
-console.error('Error placing order:', error);
-showToast('Error placing order. Please try again.', true);
+    setTimeout(() => switchTo('home'), 1500);
 
-dom.placeOrderBtn2.disabled = false;
-dom.placeOrderBtn2.textContent = t('placeOrderBtn');
-}
+  } catch (error) {
+    console.error('Error placing order:', error);
+    showToast('Error placing order. Please try again.', true);
+
+    dom.placeOrderBtn2.disabled = false;
+    dom.placeOrderBtn2.textContent = t('placeOrderBtn');
+  }
 }
 
 async function saveOrderToDB(order) {
