@@ -786,13 +786,9 @@ function init() {
 dom.btnEn.addEventListener('click', () => {
 LANG = 'en';
 appData.lang = 'en';
-// Load inventory from database
-loadInventoryFromDB();
-
 applyLang();
-renderHome();
-switchTo('home');
 });
+
 dom.btnEs.addEventListener('click', () => {
 LANG = 'es';
 appData.lang = 'es';
@@ -843,6 +839,16 @@ dom.modifyOrder.addEventListener('click', () => switchTo('home'));
 applyLang();
 renderHome();
 switchTo('home');
+
+dom.modifyOrder.addEventListener('click', () => switchTo('home'));
+
+// Load inventory from database on startup
+loadInventoryFromDB();
+
+applyLang();
+renderHome();
+switchTo('home');
+}
 }
 
 async function createAccountFlow() {
@@ -1224,6 +1230,19 @@ async function loadInventoryFromDB() {
     }
   } catch (error) {
     console.error('Error loading inventory:', error);
+  }
+}
+
+async function loadOrdersFromDB(email) {
+  try {
+    console.log('Loading orders for:', email);
+    const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
+    const data = await response.json();
+    console.log('Orders loaded:', data.orders);
+    return data.orders || [];
+  } catch (error) {
+    console.error('Error loading orders:', error);
+    return [];
   }
 }
 
