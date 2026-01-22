@@ -783,72 +783,68 @@ renderHome();
 }
 
 function init() {
-dom.btnEn.addEventListener('click', () => {
-LANG = 'en';
-appData.lang = 'en';
-applyLang();
-});
+  dom.btnEn.addEventListener('click', () => {
+    LANG = 'en';
+    appData.lang = 'en';
+    applyLang();
+  });
 
-dom.btnEs.addEventListener('click', () => {
-LANG = 'es';
-appData.lang = 'es';
-applyLang();
-});
-dom.brand.addEventListener('click', () => switchTo('home'));
-dom.goSignUp.addEventListener('click', () => switchTo('signup'));
-dom.goLogin.addEventListener('click', () => switchTo('login'));
+  dom.btnEs.addEventListener('click', () => {
+    LANG = 'es';
+    appData.lang = 'es';
+    applyLang();
+  });
 
-const goAccountBtn = document.getElementById('goAccount');
-if (goAccountBtn) goAccountBtn.addEventListener('click', () => switchTo('account'));
+  dom.brand.addEventListener('click', () => switchTo('home'));
+  dom.goSignUp.addEventListener('click', () => switchTo('signup'));
+  dom.goLogin.addEventListener('click', () => switchTo('login'));
 
-dom.placeOrderBtn.addEventListener('click', () => {
-if (!currentUser) {
-showToast('Please log in or sign up to place an order.', true);
-switchTo('login');
-return;
-}
-prepareOrder();
-switchTo('confirm');
-});
+  const goAccountBtn = document.getElementById('goAccount');
+  if (goAccountBtn) goAccountBtn.addEventListener('click', () => switchTo('account'));
 
-dom.createAccount.addEventListener('click', createAccountFlow);
-dom.goBackFromSignup && dom.goBackFromSignup.addEventListener('click', () => switchTo('home'));
-dom.verify.submitCode.addEventListener('click', submitVerificationCode);
-dom.verify.resend.addEventListener('click', resendVerification);
-dom.verify.back.addEventListener('click', () => switchTo('signup'));
-dom.login.loginButton.addEventListener('click', loginUser);
-dom.logoutBtn.addEventListener('click', () => {
-currentUser = null;
-appData.session = null;
+  dom.placeOrderBtn.addEventListener('click', () => {
+    if (!currentUser) {
+      showToast('Please log in or sign up to place an order.', true);
+      switchTo('login');
+      return;
+    }
+    prepareOrder();
+    switchTo('confirm');
+  });
 
-TAMALES_DATA.forEach(tamale => {
-qty[tamale.id] = 0;
-});
+  dom.createAccount.addEventListener('click', createAccountFlow);
+  dom.goBackFromSignup && dom.goBackFromSignup.addEventListener('click', () => switchTo('home'));
+  dom.verify.submitCode.addEventListener('click', submitVerificationCode);
+  dom.verify.resend.addEventListener('click', resendVerification);
+  dom.verify.back.addEventListener('click', () => switchTo('signup'));
+  dom.login.loginButton.addEventListener('click', loginUser);
 
-const goAccountBtn = document.getElementById('goAccount');
-if (goAccountBtn) goAccountBtn.classList.add('hidden');
+  dom.logoutBtn.addEventListener('click', () => {
+    currentUser = null;
+    appData.session = null;
 
-switchTo('home');
-});
-const backToHomeBtn = document.getElementById('backToHome');
-if (backToHomeBtn) backToHomeBtn.addEventListener('click', () => switchTo('home'));
-dom.login.back.addEventListener('click', () => switchTo('home'));
-dom.placeOrderBtn2.addEventListener('click', sendEmailsForOrder);
-dom.modifyOrder.addEventListener('click', () => switchTo('home'));
+    TAMALES_DATA.forEach(tamale => {
+      qty[tamale.id] = 0;
+    });
 
-applyLang();
-renderHome();
-switchTo('home');
+    const goAccountBtn = document.getElementById('goAccount');
+    if (goAccountBtn) goAccountBtn.classList.add('hidden');
 
-dom.modifyOrder.addEventListener('click', () => switchTo('home'));
+    switchTo('home');
+  });
 
-// Load inventory from database on startup
-loadInventoryFromDB();
+  const backToHomeBtn = document.getElementById('backToHome');
+  if (backToHomeBtn) backToHomeBtn.addEventListener('click', () => switchTo('home'));
+  dom.login.back.addEventListener('click', () => switchTo('home'));
+  dom.placeOrderBtn2.addEventListener('click', sendEmailsForOrder);
+  dom.modifyOrder.addEventListener('click', () => switchTo('home'));
 
-applyLang();
-renderHome();
-switchTo('home');
-}
+  // Load inventory from database on startup
+  loadInventoryFromDB();
+
+  applyLang();
+  renderHome();
+  switchTo('home');
 }
 
 async function createAccountFlow() {
