@@ -379,14 +379,39 @@ export async function onRequest({ request, env }) {
         const { orderId, userEmail } = body;
         if (!orderId || !userEmail) return jsonError('Order ID and email required', 400);
 
+        // First, get the order details so we know what inventory to restore
+        const order = await env.DB
+            .prepare('SELECT * FROM orders WHERE id=? AND user_email=?')
+            .bind(orderId, userEmail.toLowerCase())
+            .first();
+
+        if (!order) {
+          return jsonError('Order not found', 404);
+        }
+
+        // Parse the items from the order
+        const items = JSON.parse(order.items);
+
+        // Delete the order
         await env.DB
-          .prepare('DELETE FROM orders WHERE id=? AND user_email=?')
-          .bind(orderId, userEmail.toLowerCase())
-          .run();
+            .prepare('DELETE FROM orders WHERE id=? AND user_email=?')
+            .bind(orderId, userEmail.toLowerCase())
+            .run();
+
+        // Restore inventory for each item
+        try {
+          for (const item of items) {
+            await env.DB.prepare(
+                'UPDATE inventory SET remaining = remaining + ? WHERE tamale_id = ?'
+            ).bind(item.qty, item.id).run();
+          }
+        } catch (inventoryError) {
+          console.error('Error restoring inventory:', inventoryError);
+          // Order is already deleted, so we continue even if inventory restore fails
+        }
 
         return json({ success: true });
-      }
-    }
+      }    }
 
     return jsonError('Invalid action or method', 400);
   } catch (err) {
