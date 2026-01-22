@@ -1153,7 +1153,7 @@ async function renderAccount() {
           const success = await deleteOrderFromDB(orderId, currentUser.email);
           if (success) {
             await loadInventoryFromDB();
-            renderAccount();
+            await renderAccount();
             showToast('Order deleted and inventory restored.', false);
           } else {
             showToast('Error deleting order. Please try again.', true);
@@ -1250,23 +1250,36 @@ function renderConfirm() {
 }
 
 async function sendEmailsForOrder() {
+  console.log('🚀 START: sendEmailsForOrder called');
+
   if (!pendingOrder) {
+    console.error('❌ No pending order');
     showToast('No order to send.', true);
     return;
   }
 
-  console.log('Saving order:', pendingOrder);
+  console.log('📦 Pending order:', JSON.stringify(pendingOrder, null, 2));
 
   try {
     dom.placeOrderBtn2.disabled = true;
     dom.placeOrderBtn2.textContent = 'Processing...';
+    console.log('🔄 Button disabled, text set to Processing...');
 
+    console.log('💾 STEP 1: Calling saveOrder...');
     const saveResult = await saveOrder(pendingOrder);
-    console.log('Save result:', saveResult);
+    console.log('✅ STEP 1 Complete - Save result:', JSON.stringify(saveResult, null, 2));
 
     if (!saveResult || !saveResult.success) {
+      console.error('❌ Save failed:', saveResult);
       throw new Error('Failed to save order');
     }
+
+    console.log('📧 STEP 2: Sending emails...');
+    console.log('📧 Email API URL:', `${API_URL}/api`);
+    console.log('📧 Email payload:', JSON.stringify({
+      action: 'sendOrderEmails',
+      order: pendingOrder
+    }, null, 2));
 
     const emailResponse = await fetch(`${API_URL}/api`, {
       method: 'POST',
@@ -1277,36 +1290,68 @@ async function sendEmailsForOrder() {
       })
     });
 
+    console.log('📧 Email response status:', emailResponse.status);
+    console.log('📧 Email response ok:', emailResponse.ok);
+
     const emailResult = await emailResponse.json();
-    console.log('Email result:', emailResult);
+    console.log('✅ STEP 2 Complete - Email result:', JSON.stringify(emailResult, null, 2));
 
     if (emailResult.success) {
+      console.log('✅ Emails sent successfully');
       showToast(t('orderPlaced'));
     } else {
+      console.warn('⚠️ Emails may have failed, but order was saved');
       showToast('Order saved! Confirmation email will be sent shortly.');
     }
 
+    console.log('🧹 STEP 3: Cleaning up...');
     TAMALES_DATA.forEach(tamale => {
       qty[tamale.id] = 0;
     });
     pendingOrder = null;
+    console.log('✅ Cart cleared');
 
+    console.log('📊 STEP 4: Reloading inventory...');
     await loadInventoryFromDB();
+    console.log('✅ Inventory reloaded');
 
-    setTimeout(() => switchTo('home'), 1500);
+    console.log('🏠 STEP 5: Redirecting to home in 1.5s...');
+    setTimeout(() => {
+      console.log('🏠 Switching to home view');
+      switchTo('home');
+    }, 1500);
+
+    console.log('✅✅✅ ORDER PLACEMENT COMPLETE');
 
   } catch (error) {
-    console.error('Error placing order:', error);
+    console.error('❌❌❌ ERROR in sendEmailsForOrder:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+
     showToast('Error placing order. Please try again.', true);
 
     dom.placeOrderBtn2.disabled = false;
     dom.placeOrderBtn2.textContent = t('placeOrderBtn');
+    console.log('🔄 Button re-enabled');
   }
 }
 
 async function saveOrderToDB(order) {
   try {
-    console.log('Calling API to save order...');
+    console.log('💾 saveOrderToDB: Starting...');
+    console.log('💾 API_URL:', API_URL);
+    console.log('💾 Full URL:', `${API_URL}/api`);
+    console.log('💾 Order data:', JSON.stringify({
+      action: 'createOrder',
+      user_email: order.email,
+      user_name: order.name,
+      user_phone: order.phone,
+      items: order.items,
+      grand_total: order.grandTotal,
+      created_at: order.createdAt
+    }, null, 2));
+
     const response = await fetch(`${API_URL}/api`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -1320,11 +1365,22 @@ async function saveOrderToDB(order) {
         created_at: order.createdAt
       })
     });
+
+    console.log('💾 Response status:', response.status);
+    console.log('💾 Response ok:', response.ok);
+    console.log('💾 Response headers:', Object.fromEntries(response.headers.entries()));
+
     const data = await response.json();
-    console.log('API response:', data);
+    console.log('💾 Response data:', JSON.stringify(data, null, 2));
+
     return data;
   } catch (error) {
-    console.error('Error saving order:', error);
+    console.error('💾 ERROR in saveOrderToDB:', error);
+    console.error('💾 Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack
+    });
     return null;
   }
 }
