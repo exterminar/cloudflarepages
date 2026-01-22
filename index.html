@@ -782,7 +782,7 @@ dom.footerText.textContent = t('footer');
 renderHome();
 }
 
-function init() {
+async function init() {
   dom.btnEn.addEventListener('click', () => {
     LANG = 'en';
     appData.lang = 'en';
@@ -839,8 +839,8 @@ function init() {
   dom.placeOrderBtn2.addEventListener('click', sendEmailsForOrder);
   dom.modifyOrder.addEventListener('click', () => switchTo('home'));
 
-  // Load inventory from database on startup
-  loadInventoryFromDB();
+  // Load inventory from database FIRST, then render
+  await loadInventoryFromDB();
 
   applyLang();
   renderHome();
