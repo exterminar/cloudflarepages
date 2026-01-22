@@ -134,7 +134,8 @@ export async function onRequest({ request, env }) {
                 .header { background: linear-gradient(180deg, #FF9C1A, #FFA43B); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
                 .content { background: #FFF3E6; padding: 40px; border-radius: 0 0 8px 8px; }
                 .code { font-size: 36px; font-weight: bold; color: #E65100; text-align: center; letter-spacing: 8px; padding: 20px; background: white; border-radius: 8px; margin: 20px 0; }
-                .footer { text-align: center; margin-top: 20px; color: #8C5A2D; font-size: 14px; }
+                .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #FFDE9A; color: #8C5A2D; font-size: 14px; }
+                .link-button { display: inline-block; background: #E65100; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
               </style>
             </head>
             <body>
@@ -147,10 +148,15 @@ export async function onRequest({ request, env }) {
                 <div class="code">${code}</div>
                 <p>This code will expire in 10 minutes.</p>
                 <p>If you didn't request this code, please ignore this email.</p>
+                <p style="text-align: center;">
+                  <a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" class="link-button">Visit Our Website</a>
+                </p>
                 <p>¡Gracias!<br>Danely</p>
               </div>
               <div class="footer">
-                © 2025 Tamales de Danely. All rights reserved.
+                <p style="margin: 5px 0;">🫔 Tamales de Danely</p>
+                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamales.odnamra.com'}</a></p>
+                <p style="margin: 5px 0;">© 2025 Armando Gomez. All rights reserved.</p>
               </div>
             </body>
             </html>
@@ -187,12 +193,13 @@ export async function onRequest({ request, env }) {
             <head>
               <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
-                .header { background: linear-gradient(180deg, #FF9C1A, #FFA43B); color: white; padding: 30px; text-align: center; }
-                .content { background: #FFF3E6; padding: 30px; }
-                table { width: 100%; border-collapse: collapse; background: white; margin: 20px 0; }
+                .header { background: linear-gradient(180deg, #FF9C1A, #FFA43B); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+                .content { background: #FFF3E6; padding: 30px; border-radius: 0 0 8px 8px; }
+                table { width: 100%; border-collapse: collapse; background: white; margin: 20px 0; border-radius: 8px; overflow: hidden; }
                 th { background: #E65100; color: white; padding: 12px; text-align: left; }
                 td { padding: 10px; border-bottom: 1px solid #eee; }
                 .total { font-size: 20px; font-weight: bold; color: #E65100; margin-top: 20px; }
+                .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #FFDE9A; color: #8C5A2D; font-size: 14px; }
               </style>
             </head>
             <body>
@@ -223,6 +230,11 @@ export async function onRequest({ request, env }) {
                 
                 <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
               </div>
+              <div class="footer">
+                <p style="margin: 5px 0;">🫔 Tamales de Danely</p>
+                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamales.odnamra.com'}</a></p>
+                <p style="margin: 5px 0;">© 2025 Armando Gomez. All rights reserved.</p>
+              </div>
             </body>
             </html>
           `,
@@ -244,7 +256,8 @@ export async function onRequest({ request, env }) {
                 th { background: #E65100; color: white; padding: 12px; text-align: left; }
                 td { padding: 10px; border-bottom: 1px solid #eee; }
                 .total { font-size: 20px; font-weight: bold; color: #E65100; text-align: right; margin-top: 20px; }
-                .footer { text-align: center; margin-top: 20px; color: #8C5A2D; font-size: 14px; }
+                .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #FFDE9A; color: #8C5A2D; font-size: 14px; }
+                .link-button { display: inline-block; background: #E65100; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: bold; }
               </style>
             </head>
             <body>
@@ -279,10 +292,16 @@ export async function onRequest({ request, env }) {
                 
                 <p style="margin-top: 20px;">We'll contact you when your order is ready for pickup!</p>
                 
+                <p style="text-align: center;">
+                  <a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" class="link-button">View Your Account</a>
+                </p>
+                
                 <p>¡Gracias!<br>Danely</p>
               </div>
               <div class="footer">
-                © 2025 Tamales de Danely. All rights reserved.
+                <p style="margin: 5px 0;">🫔 Tamales de Danely</p>
+                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamales.odnamra.com'}</a></p>
+                <p style="margin: 5px 0;">© 2025 Armando Gomez. All rights reserved.</p>
               </div>
             </body>
             </html>
