@@ -155,7 +155,7 @@ export async function onRequest({ request, env }) {
               </div>
               <div class="footer">
                 <p style="margin: 5px 0;">🫔 Tamales de Danely</p>
-                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamales.odnamra.com'}</a></p>
+                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamalesdedanely.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamalesdedanely.odnamra.com'}</a></p>
                 <p style="margin: 5px 0;">© 2025 Armando Gomez. All rights reserved.</p>
               </div>
             </body>
@@ -232,7 +232,7 @@ export async function onRequest({ request, env }) {
               </div>
               <div class="footer">
                 <p style="margin: 5px 0;">🫔 Tamales de Danely</p>
-                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamales.odnamra.com'}</a></p>
+                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamalesdedanely.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamalesdedanely.odnamra.com'}</a></p>
                 <p style="margin: 5px 0;">© 2025 Armando Gomez. All rights reserved.</p>
               </div>
             </body>
@@ -293,14 +293,14 @@ export async function onRequest({ request, env }) {
                 <p style="margin-top: 20px;">We'll contact you when your order is ready for pickup!</p>
                 
                 <p style="text-align: center;">
-                  <a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" class="link-button">View Your Account</a>
+                  <a href="${env.WEBSITE_URL || 'https://tamalesdedanely.odnamra.com'}" class="link-button">View Your Account</a>
                 </p>
                 
                 <p>¡Gracias!<br>Danely</p>
               </div>
               <div class="footer">
                 <p style="margin: 5px 0;">🫔 Tamales de Danely</p>
-                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamales.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamales.odnamra.com'}</a></p>
+                <p style="margin: 5px 0;"><a href="${env.WEBSITE_URL || 'https://tamalesdedanely.odnamra.com'}" style="color: #E65100; text-decoration: none;">${env.WEBSITE_URL || 'tamalesdedanely.odnamra.com'}</a></p>
                 <p style="margin: 5px 0;">© 2025 Armando Gomez. All rights reserved.</p>
               </div>
             </body>
