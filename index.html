@@ -848,43 +848,47 @@ async function init() {
 }
 
 async function createAccountFlow() {
-const name = dom.inputs.name.value.trim();
-const bday = dom.inputs.birthday.value;
-const email = dom.inputs.email.value.trim().toLowerCase();
-const phone = dom.inputs.phone.value.trim();
+  const name = dom.inputs.name.value.trim();
+  const bday = dom.inputs.birthday.value;
+  const email = dom.inputs.email.value.trim().toLowerCase();
+  const phone = dom.inputs.phone.value.trim();
 
-if (!name || !email) {
-showToast('Please provide your name and email.', true);
-return;
-}
+  if (!name || !email) {
+    showToast('Please provide your name and email.', true);
+    return;
+  }
 
-const code = Math.floor(100000 + Math.random() * 900000).toString();
-const code_created_at = Date.now();
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const code_created_at = Date.now();
 
-const user = {
-name,
-birthday: bday,
-email,
-phone,
-verification_code: code,
-code_created_at: code_created_at,
-createdAt: new Date().toISOString()
-};
+  const user = {
+    name,
+    birthday: bday,
+    email,
+    phone,
+    verification_code: code,
+    code_created_at: code_created_at,
+    createdAt: new Date().toISOString()
+  };
 
-await fetch(`${API_URL}/api`, {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-action: 'sendVerificationEmail',
-email,
-name,
-code
-})
-});
+  // Save user to database FIRST
+  await saveUserToStorage(user);
 
-currentVerification = {email, code, createdAt: code_created_at};
-dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
-switchTo('verify');
+  // Then send verification email
+  await fetch(`${API_URL}/api`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      action: 'sendVerificationEmail',
+      email,
+      name,
+      code
+    })
+  });
+
+  currentVerification = {email, code, createdAt: code_created_at};
+  dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
+  switchTo('verify');
 }
 
 async function submitVerificationCode() {
