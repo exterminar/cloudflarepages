@@ -599,7 +599,7 @@ function switchTo(view) {
   Object.values(views).forEach(v => v.classList.add('hidden'));
   views[view].classList.remove('hidden');
   if (view === 'home') renderHome();
-  if (view === 'account') renderAccount();  // Make sure this line exists
+  if (view === 'account') renderAccount();
   if (view === 'confirm') renderConfirm();
 }
 
@@ -618,10 +618,12 @@ action: 'createUser',
 })
 });
 const data = await response.json();
+console.log('saveUserToStorage response:', data); // Debug log
 return data;
 } catch (error) {
 console.error('Error saving user:', error);
 showToast('Error saving user data. Please try again.', true);
+return null;
 }
 }
 
@@ -847,6 +849,7 @@ async function init() {
   switchTo('home');
 }
 
+// ✅ FIXED: Added error handling and validation
 async function createAccountFlow() {
   const name = dom.inputs.name.value.trim();
   const bday = dom.inputs.birthday.value;
@@ -857,6 +860,17 @@ async function createAccountFlow() {
     showToast('Please provide your name and email.', true);
     return;
   }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showToast('Please enter a valid email address.', true);
+    return;
+  }
+
+  // Disable button to prevent double-clicks
+  dom.createAccount.disabled = true;
+  dom.createAccount.textContent = 'Creating...';
 
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   const code_created_at = Date.now();
@@ -871,92 +885,192 @@ async function createAccountFlow() {
     createdAt: new Date().toISOString()
   };
 
-  // Save user to database FIRST
-  await saveUserToStorage(user);
+  try {
+    // ✅ FIX: Check if save succeeded before proceeding
+    console.log('Saving user to database...');
+    const saveResult = await saveUserToStorage(user);
+    console.log('Save result:', saveResult);
 
-  // Then send verification email
-  await fetch(`${API_URL}/api`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      action: 'sendVerificationEmail',
-      email,
-      name,
-      code
-    })
-  });
+    if (!saveResult || !saveResult.success) {
+      showToast(saveResult?.message || 'Error creating account. Please try again.', true);
+      dom.createAccount.disabled = false;
+      dom.createAccount.textContent = t('createAccount');
+      return;
+    }
 
-  currentVerification = {email, code, createdAt: code_created_at};
-  dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
-  switchTo('verify');
+    // ✅ Only send email if save succeeded
+    console.log('User saved successfully. Sending verification email...');
+    const emailResponse = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'sendVerificationEmail',
+        email,
+        name,
+        code
+      })
+    });
+
+    const emailResult = await emailResponse.json();
+    console.log('Email result:', emailResult);
+
+    // ✅ FIX: Store email in input field for persistence across page refreshes
+    currentVerification = {email, code, createdAt: code_created_at};
+    dom.verify.codeInput.dataset.email = email; // Store email in DOM
+    dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
+
+    switchTo('verify');
+    showToast('Verification code sent to your email!');
+
+  } catch (error) {
+    console.error('Error in createAccountFlow:', error);
+    showToast('Network error. Please check your connection and try again.', true);
+  } finally {
+    // Re-enable button
+    dom.createAccount.disabled = false;
+    dom.createAccount.textContent = t('createAccount');
+  }
 }
 
+// ✅ FIXED: Better error handling and validation
 async function submitVerificationCode() {
-const entered = dom.verify.codeInput.value.trim();
-if (!currentVerification) {
-showToast('No verification pending. Please sign up or request a code.', true);
-return;
+  const entered = dom.verify.codeInput.value.trim();
+
+  // ✅ FIX: Get email from DOM storage (persists across refreshes) OR from memory
+  const email = dom.verify.codeInput.dataset.email || currentVerification?.email;
+
+  if (!email) {
+    showToast('Session expired. Please sign up again.', true);
+    switchTo('signup');
+    return;
+  }
+
+  if (!entered || entered.length !== 6) {
+    showToast('Please enter a 6-digit code.', true);
+    return;
+  }
+
+  // Validate that code is all digits
+  if (!/^\d{6}$/.test(entered)) {
+    showToast('Code must be 6 digits.', true);
+    return;
+  }
+
+  try {
+    dom.verify.submitCode.disabled = true;
+    dom.verify.submitCode.textContent = 'Verifying...';
+
+    console.log('Verifying code for email:', email);
+    const response = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'verifyUser',
+        email: email,
+        code: entered
+      })
+    });
+
+    const data = await response.json();
+    console.log('Verification response:', data);
+
+    if (data.success) {
+      currentUser = data.user;
+      appData.session = {email: currentUser.email};
+      currentVerification = null;
+      dom.verify.codeInput.value = '';
+      delete dom.verify.codeInput.dataset.email; // Clear stored email
+
+      const goAccountBtn = document.getElementById('goAccount');
+      if (goAccountBtn) goAccountBtn.classList.remove('hidden');
+
+      showToast('Verified! You are now logged in.');
+      switchTo('home');
+    } else {
+      // ✅ FIX: Show specific error message from backend
+      showToast(data.message || 'Code incorrect. Please try again or click Resend.', true);
+    }
+  } catch (error) {
+    console.error('Verification error:', error);
+    showToast('Network error. Please try again.', true);
+  } finally {
+    dom.verify.submitCode.disabled = false;
+    dom.verify.submitCode.textContent = t('submit');
+  }
 }
 
-try {
-const response = await fetch(`${API_URL}/api`, {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-action: 'verifyUser',
-email: currentVerification.email,
-code: entered
-})
-});
-
-const data = await response.json();
-
-if (data.success) {
-currentUser = data.user;
-appData.session = {email: currentUser.email};
-currentVerification = null;
-dom.verify.codeInput.value = '';
-const goAccountBtn = document.getElementById('goAccount');
-if (goAccountBtn) goAccountBtn.classList.remove('hidden');
-showToast('Verified! You are now logged in.');
-switchTo('home');
-} else {
-showToast('Code incorrect. Try Resend.', true);
-}
-} catch (error) {
-console.error('Verification error:', error);
-showToast('Error verifying code. Please try again.', true);
-}
-}
-
+// ✅ FIXED: Better error handling
 async function resendVerification() {
-if (!currentVerification) {
-showToast('No verification in progress.', true);
-return;
-}
+  // ✅ FIX: Get email from DOM storage OR memory
+  const email = dom.verify.codeInput.dataset.email || currentVerification?.email;
 
-const code = Math.floor(100000 + Math.random() * 900000).toString();
+  if (!email) {
+    showToast('Session expired. Please sign up again.', true);
+    switchTo('signup');
+    return;
+  }
 
-try {
-await fetch(`${API_URL}/api`, {
-method: 'POST',
-headers: {'Content-Type': 'application/json'},
-body: JSON.stringify({
-action: 'sendVerificationEmail',
-email: currentVerification.email,
-code
-})
-});
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  const code_created_at = Date.now();
 
-currentVerification.code = code;
-currentVerification.createdAt = Date.now();
-dom.verify.sentTo.textContent = `${t('sentTo')} ${currentVerification.email}`;
+  try {
+    dom.verify.resend.disabled = true;
+    dom.verify.resend.textContent = 'Sending...';
 
-showToast('A new verification code has been sent to your email.');
-} catch (err) {
-console.error(err);
-showToast('Failed to resend verification email.', true);
-}
+    console.log('Resending verification code to:', email);
+
+    // ✅ Update the code in the database first
+    const updateResponse = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'updateVerificationCode',
+        email: email,
+        code: code,
+        code_created_at: code_created_at
+      })
+    });
+
+    const updateResult = await updateResponse.json();
+    console.log('Update code result:', updateResult);
+
+    if (!updateResult.success) {
+      showToast('Failed to generate new code. Please try again.', true);
+      return;
+    }
+
+    // ✅ Then send the new code via email
+    const emailResponse = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'sendVerificationEmail',
+        email: email,
+        name: currentVerification?.name || 'User',
+        code: code
+      })
+    });
+
+    const emailResult = await emailResponse.json();
+    console.log('Resend email result:', emailResult);
+
+    // Update local state
+    currentVerification = {
+      email: email,
+      code: code,
+      createdAt: code_created_at
+    };
+    dom.verify.codeInput.dataset.email = email;
+    dom.verify.sentTo.textContent = `${t('sentTo')} ${email}`;
+
+    showToast('A new verification code has been sent to your email.');
+  } catch (error) {
+    console.error('Resend error:', error);
+    showToast('Network error. Please try again.', true);
+  } finally {
+    dom.verify.resend.disabled = false;
+    dom.verify.resend.textContent = t('resend');
+  }
 }
 
 async function loginUser() {

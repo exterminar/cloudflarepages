@@ -1,5 +1,6 @@
 // /functions/api.js
 export async function onRequest({ request, env }) {
+
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
@@ -302,6 +303,15 @@ export async function onRequest({ request, env }) {
           .first();
 
         if (existing) {
+          // ✅ IMPROVED: Return message if user already exists but isn't verified
+          if (existing.verified) {
+            return json({
+              success: false,
+              message: 'An account with this email already exists. Please log in instead.'
+            });
+          }
+
+          // User exists but not verified - update their info and code
           await env.DB.prepare(
             'UPDATE users SET name=?, birthday=?, phone=?, verification_code=?, code_created_at=? WHERE email=?'
           ).bind(name, birthday, phone, verification_code, code_created_at, email.toLowerCase()).run();
@@ -314,17 +324,80 @@ export async function onRequest({ request, env }) {
         return json({ success: true });
       }
 
+      /* ---------- ✅ NEW: UPDATE VERIFICATION CODE ---------- */
+      if (action === 'updateVerificationCode') {
+        const { email, code, code_created_at } = body;
+        if (!email || !code) return jsonError('Email and code required', 400);
+
+        const user = await env.DB
+          .prepare('SELECT * FROM users WHERE email = ?')
+          .bind(email.toLowerCase())
+          .first();
+
+        if (!user) {
+          return json({
+            success: false,
+            message: 'User not found. Please sign up first.'
+          });
+        }
+
+        if (user.verified) {
+          return json({
+            success: false,
+            message: 'This account is already verified. Please log in.'
+          });
+        }
+
+        // Update the verification code
+        await env.DB.prepare(
+          'UPDATE users SET verification_code=?, code_created_at=? WHERE email=?'
+        ).bind(code, code_created_at, email.toLowerCase()).run();
+
+        return json({ success: true });
+      }
+
       /* ---------- VERIFY USER ---------- */
       if (action === 'verifyUser') {
         const { email, code } = body;
+        if (!email || !code) return jsonError('Email and code required', 400);
 
         const user = await env.DB
-          .prepare('SELECT * FROM users WHERE email=? AND verification_code=?')
-          .bind(email.toLowerCase(), code)
+          .prepare('SELECT * FROM users WHERE email=?')
+          .bind(email.toLowerCase())
           .first();
 
-        if (!user) return jsonError('Invalid code', 400);
+        if (!user) {
+          return json({
+            success: false,
+            message: 'User not found. Please sign up first.'
+          });
+        }
 
+        if (user.verified) {
+          return json({
+            success: false,
+            message: 'This account is already verified. Please log in instead.'
+          });
+        }
+
+        // ✅ IMPROVED: Check if code matches
+        if (user.verification_code !== code) {
+          return json({
+            success: false,
+            message: 'Invalid verification code. Please check your email or click Resend.'
+          });
+        }
+
+        // ✅ IMPROVED: Check if code is expired (10 minutes = 600000ms)
+        const codeAge = Date.now() - user.code_created_at;
+        if (codeAge > 600000) {
+          return json({
+            success: false,
+            message: 'Verification code has expired. Please click Resend to get a new code.'
+          });
+        }
+
+        // Code is valid - verify the user
         await env.DB
           .prepare('UPDATE users SET verified=1 WHERE email=?')
           .bind(email.toLowerCase())
@@ -411,7 +484,8 @@ export async function onRequest({ request, env }) {
         }
 
         return json({ success: true });
-      }    }
+      }
+    }
 
     return jsonError('Invalid action or method', 400);
   } catch (err) {
