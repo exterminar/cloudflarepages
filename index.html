@@ -1046,6 +1046,220 @@ async function renderAccount() {
   }
 }
 
+function prepareOrder() {
+  if (!currentUser) {
+    showToast('Please log in or sign up to place an order.', true);
+    switchTo('login');
+    return;
+  }
+
+  const orderItems = [];
+  let grandTotal = 0;
+
+  TAMALES_DATA.forEach(tamale => {
+    if (qty[tamale.id] > 0) {
+      const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
+      const itemTotal = qty[tamale.id] * tamale.pricePerDozen;
+      orderItems.push({
+        id: tamale.id,
+        name: tamale[nameKey],
+        qty: qty[tamale.id],
+        pricePerDozen: tamale.pricePerDozen,
+        total: itemTotal
+      });
+      grandTotal += itemTotal;
+    }
+  });
+
+  if (orderItems.length === 0) {
+    showToast('Please add at least one dozen tamales to your order.', true);
+    return;
+  }
+
+  pendingOrder = {
+    items: orderItems,
+    grandTotal,
+    email: currentUser.email,
+    name: currentUser.name,
+    phone: currentUser.phone,
+    createdAt: new Date().toISOString()
+  };
+}
+
+function renderConfirm() {
+  if (!pendingOrder) {
+    dom.confirmSummary.textContent = 'No order prepared.';
+  } else {
+    let summaryHTML = `
+      <div style="border-bottom:0.125em solid var(--accent-dark);padding-bottom:0.5em;margin-bottom:0.75em;">
+        <table style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:0.0625em solid rgba(0,0,0,0.1);">
+              <th style="text-align:left;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('item')}</th>
+              <th style="text-align:center;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('quantity')}</th>
+              <th style="text-align:right;padding:0.5em 0;font-size:0.875em;color:var(--muted)">${t('price')}</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    pendingOrder.items.forEach(item => {
+      summaryHTML += `
+        <tr style="border-bottom:0.0625em solid rgba(0,0,0,0.05);">
+          <td style="padding:0.625em 0;font-weight:600">${item.name}</td>
+          <td style="text-align:center;padding:0.625em 0">${item.qty} ${t('dozen')}</td>
+          <td style="text-align:right;padding:0.625em 0">${formatCurrency(item.total)}</td>
+        </tr>
+      `;
+    });
+
+    summaryHTML += `
+          </tbody>
+        </table>
+      </div>
+      <div style="text-align:right;margin-top:0.75em;">
+        <div style="font-size:1.25em;font-weight:800;color:var(--accent-dark);margin-bottom:0.5em;">
+          ${t('total')}: ${formatCurrency(pendingOrder.grandTotal)}
+        </div>
+        <div style="font-size:0.875em;color:var(--muted);margin-top:0.375em;">
+          ${t('pickup')}
+        </div>
+      </div>
+    `;
+
+    dom.confirmSummary.innerHTML = summaryHTML;
+  }
+}
+
+async function sendEmailsForOrder() {
+  if (!pendingOrder) {
+    showToast('No order to send.', true);
+    return;
+  }
+
+  console.log('Saving order:', pendingOrder);
+
+  try {
+    dom.placeOrderBtn2.disabled = true;
+    dom.placeOrderBtn2.textContent = 'Processing...';
+
+    const saveResult = await saveOrder(pendingOrder);
+    console.log('Save result:', saveResult);
+
+    if (!saveResult || !saveResult.success) {
+      throw new Error('Failed to save order');
+    }
+
+    const emailResponse = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'sendOrderEmails',
+        order: pendingOrder
+      })
+    });
+
+    const emailResult = await emailResponse.json();
+    console.log('Email result:', emailResult);
+
+    if (emailResult.success) {
+      showToast(t('orderPlaced'));
+    } else {
+      showToast('Order saved! Confirmation email will be sent shortly.');
+    }
+
+    TAMALES_DATA.forEach(tamale => {
+      qty[tamale.id] = 0;
+    });
+    pendingOrder = null;
+
+    await loadInventoryFromDB();
+
+    setTimeout(() => switchTo('home'), 1500);
+
+  } catch (error) {
+    console.error('Error placing order:', error);
+    showToast('Error placing order. Please try again.', true);
+
+    dom.placeOrderBtn2.disabled = false;
+    dom.placeOrderBtn2.textContent = t('placeOrderBtn');
+  }
+}
+
+async function saveOrderToDB(order) {
+  try {
+    console.log('Calling API to save order...');
+    const response = await fetch(`${API_URL}/api`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'createOrder',
+        user_email: order.email,
+        user_name: order.name,
+        user_phone: order.phone,
+        items: order.items,
+        grand_total: order.grandTotal,
+        created_at: order.createdAt
+      })
+    });
+    const data = await response.json();
+    console.log('API response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error saving order:', error);
+    return null;
+  }
+}
+
+async function loadInventoryFromDB() {
+  try {
+    const response = await fetch(`${API_URL}/api?action=getInventory`);
+    const data = await response.json();
+
+    if (data.inventory) {
+      Object.keys(data.inventory).forEach(tamaleId => {
+        inventory[tamaleId] = data.inventory[tamaleId];
+      });
+    }
+  } catch (error) {
+    console.error('Error loading inventory:', error);
+  }
+}
+
+async function loadOrdersFromDB(email) {
+  try {
+    console.log('Loading orders for:', email);
+    const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
+    const data = await response.json();
+    console.log('Orders loaded:', data.orders);
+    return data.orders || [];
+  } catch (error) {
+    console.error('Error loading orders:', error);
+    return [];
+  }
+}
+
+async function deleteOrderFromDB(orderId, userEmail) {
+  try {
+    const response = await fetch(`${API_URL}/api`, {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        action: 'deleteOrder',
+        orderId: orderId,
+        userEmail: userEmail
+      })
+    });
+    const data = await response.json();
+    return data.success;
+  } catch (error) {
+    console.error('Error deleting order:', error);
+    return false;
+  }
+}
+
+init();
+
 </script>
 
 </body>
