@@ -638,6 +638,30 @@ return result;
 return null;
 }
 
+function renderHome() {
+const authButtons = document.getElementById('auth-buttons');
+const loggedInCard = document.getElementById('logged-in-card');
+const loggedInName = document.getElementById('logged-in-name');
+const loggedInText = document.getElementById('logged-in-text');
+
+if (currentUser) {
+authButtons.classList.add('hidden');
+loggedInCard.classList.remove('hidden');
+loggedInName.textContent = currentUser.name;
+loggedInText.textContent = t('loggedInAs');
+} else {
+authButtons.classList.remove('hidden');
+loggedInCard.classList.add('hidden');
+}
+
+const container = dom.tamalesContainer;
+container.innerHTML = '';
+
+TAMALES_DATA.forEach(tamale => {
+const nameKey = LANG === 'es' ? 'nameES' : 'nameEN';
+const descKey = LANG === 'es' ? 'descES' : 'descEN';
+const priceText = LANG === 'es' ? `${tamale.pricePerDozen} / docena` : `${tamale.pricePerDozen} / dozen`;
+
 const card = document.createElement('div');
 card.className = 'card';
 card.innerHTML = `
@@ -656,6 +680,31 @@ card.innerHTML = `
 </div>
 </div>
 `;
+container.appendChild(card);
+});
+
+document.querySelectorAll('.qty-minus').forEach(btn => {
+btn.addEventListener('click', (e) => {
+const id = e.target.dataset.id;
+const tamale = TAMALES_DATA.find(t => t.id === id);
+if (qty[id] > 0) {
+qty[id]--;
+updateTamaleQty(id, tamale);
+}
+});
+});
+
+document.querySelectorAll('.qty-plus').forEach(btn => {
+btn.addEventListener('click', (e) => {
+const id = e.target.dataset.id;
+const tamale = TAMALES_DATA.find(t => t.id === id);
+if (qty[id] < 20) {
+qty[id]++;
+updateTamaleQty(id, tamale);
+}
+});
+});
+}
 
 function updateTamaleQty(id, tamale) {
 const currentQty = qty[id];
