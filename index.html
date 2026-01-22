@@ -477,7 +477,8 @@ nameES: 'Pollo en Salsa Verde',
 descEN: 'Traditional handmade chicken tamales in green sauce.',
 descES: 'Tamales tradicionales de pollo hechos a mano en salsa verde.',
 pricePerDozen: 30,
-color: '#4CAF50'  // Green color
+color: '#4CAF50',  // Green color
+maxInventory: 10  // Maximum dozens available
 },
 {
 id: 'chicken-mole',
@@ -487,7 +488,8 @@ nameES: 'Pollo en Mole',
 descEN: 'Traditional handmade chicken tamales in mole.',
 descES: 'Tamales tradicionales de pollo hechos a mano en mole.',
 pricePerDozen: 30,
-color: '#6B4423'  // Brown/mole color
+color: '#6B4423',  // Brown/mole color
+maxInventory: 10  // Maximum dozens available
 }
 ];
 
@@ -504,6 +506,12 @@ let qty = {};
 let currentUser = null;
 let currentVerification = null;
 let pendingOrder = null;
+let inventory = {}; // Track remaining inventory
+
+// Initialize inventory from TAMALES_DATA
+TAMALES_DATA.forEach(tamale => {
+  inventory[tamale.id] = tamale.maxInventory;
+});
 
 TAMALES_DATA.forEach(tamale => {
 qty[tamale.id] = 0;
@@ -664,17 +672,24 @@ const priceText = LANG === 'es' ? `${tamale.pricePerDozen} / docena` : `${tamale
 
 const card = document.createElement('div');
 card.className = 'card';
+const remaining = inventory[tamale.id] || 0;
+const soldOut = remaining === 0;
+const lowStock = remaining > 0 && remaining <= 3;
+
 card.innerHTML = `
-<div class="menu-card" data-card-id="${tamale.id}">
+<div class="menu-card ${soldOut ? 'faded' : ''}" data-card-id="${tamale.id}">
 <div class="tamale-illus" style="--tamale-color: ${tamale.color}">${tamale.emoji}</div>
 <div class="menu-right">
 <div style="font-weight:800;font-size:1.125em">${tamale[nameKey]}</div>
 <div class="muted">${tamale[descKey]}</div>
 <div class="price">$${priceText}</div>
+<div style="margin-top:0.375em;font-size:0.8125em;font-weight:600;color:${soldOut ? '#C62828' : lowStock ? '#F57C00' : '#2E7D32'}">
+  ${soldOut ? (LANG === 'es' ? '¡Agotado!' : 'Sold Out!') : (LANG === 'es' ? `${remaining} docenas disponibles` : `${remaining} dozen available`)}
+</div>
 <div class="qty" style="margin-top:0.625em;">
-<button class="qty-minus" data-id="${tamale.id}" aria-label="Decrease dozens">−</button>
+<button class="qty-minus" data-id="${tamale.id}" aria-label="Decrease dozens" ${soldOut ? 'disabled' : ''}>−</button>
 <div class="count" data-id="${tamale.id}">${qty[tamale.id]}</div>
-<button class="qty-plus" data-id="${tamale.id}" aria-label="Increase dozens">+</button>
+<button class="qty-plus" data-id="${tamale.id}" aria-label="Increase dozens" ${soldOut ? 'disabled' : ''}>+</button>
 </div>
 <div class="total">Total: <span class="total-amount" data-id="${tamale.id}">${formatCurrency(qty[tamale.id] * tamale.pricePerDozen)}</span></div>
 </div>
@@ -698,7 +713,8 @@ document.querySelectorAll('.qty-plus').forEach(btn => {
 btn.addEventListener('click', (e) => {
 const id = e.target.dataset.id;
 const tamale = TAMALES_DATA.find(t => t.id === id);
-if (qty[id] < 20) {
+const remaining = inventory[id] || 0;
+if (qty[id] < remaining && qty[id] < 20) {
 qty[id]++;
 updateTamaleQty(id, tamale);
 }
@@ -770,7 +786,12 @@ function init() {
 dom.btnEn.addEventListener('click', () => {
 LANG = 'en';
 appData.lang = 'en';
+// Load inventory from database
+loadInventoryFromDB();
+
 applyLang();
+renderHome();
+switchTo('home');
 });
 dom.btnEs.addEventListener('click', () => {
 LANG = 'es';
@@ -1183,17 +1204,20 @@ return null;
 }
 }
 
-async function loadOrdersFromDB(email) {
-try {
-console.log('Loading orders for:', email);
-const response = await fetch(`${API_URL}/api?action=getOrders&email=${encodeURIComponent(email)}`);
-const data = await response.json();
-console.log('Orders loaded:', data.orders);
-return data.orders || [];
-} catch (error) {
-console.error('Error loading orders:', error);
-return [];
-}
+async function loadInventoryFromDB() {
+  try {
+    const response = await fetch(`${API_URL}/api?action=getInventory`);
+    const data = await response.json();
+
+    if (data.inventory) {
+      // Update inventory with values from database
+      Object.keys(data.inventory).forEach(tamaleId => {
+        inventory[tamaleId] = data.inventory[tamaleId];
+      });
+    }
+  } catch (error) {
+    console.error('Error loading inventory:', error);
+  }
 }
 
 async function deleteOrderFromDB(orderId, userEmail) {

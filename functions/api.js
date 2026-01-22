@@ -89,6 +89,24 @@ export async function onRequest({ request, env }) {
 
         return json({ orders });
       }
+
+      if (action === 'getInventory') {
+        try {
+          const { results } = await env.DB
+              .prepare('SELECT * FROM inventory')
+              .all();
+
+          const inventory = {};
+          results.forEach(row => {
+            inventory[row.tamale_id] = row.remaining;
+          });
+
+          return json({ inventory });
+        } catch (error) {
+          console.error('Error getting inventory:', error);
+          return json({ inventory: {} });
+        }
+      }
     }
 
     /* =====================================================
@@ -335,6 +353,13 @@ export async function onRequest({ request, env }) {
 
         return json({ success: true, orderId: result.meta.last_row_id });
       }
+
+      // Update inventory
+      for (const item of items) {
+        await env.DB.prepare(
+            'UPDATE inventory SET remaining = remaining - ? WHERE tamale_id = ?'
+        ).bind(item.qty, item.id).run();
+}
     }
 
     /* =====================================================
