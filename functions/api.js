@@ -287,7 +287,8 @@ export async function onRequest({ request, env }) {
                   <p style="margin: 0 0 10px 0;"><strong>📍 Pickup Details:</strong></p>
                     <p style="margin: 5px 0;">📍 Danely's House<br>
                     💵 Cash only, please<br>
-                    📅 Pickup on January 26th</p>
+                    📅 Pickup by February 2nd<br>
+                    *** Additional arrangements can be made directly with Danely. ***</p>
                 </div>
                 
                 <p style="margin-top: 20px;">We'll contact you when your order is ready for pickup!</p>
