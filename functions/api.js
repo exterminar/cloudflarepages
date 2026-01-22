@@ -340,26 +340,32 @@ export async function onRequest({ request, env }) {
           return jsonError('Missing order fields', 400);
         }
 
+        // Save the order
         const result = await env.DB.prepare(
-          'INSERT INTO orders (user_email, user_name, user_phone, items, grand_total, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+            'INSERT INTO orders (user_email, user_name, user_phone, items, grand_total, created_at) VALUES (?, ?, ?, ?, ?, ?)'
         ).bind(
-          user_email.toLowerCase(),
-          user_name,
-          user_phone,
-          JSON.stringify(items),
-          grand_total,
-          created_at
+            user_email.toLowerCase(),
+            user_name,
+            user_phone,
+            JSON.stringify(items),
+            grand_total,
+            created_at
         ).run();
+
+        // Update inventory for each item
+        try {
+          for (const item of items) {
+            await env.DB.prepare(
+                'UPDATE inventory SET remaining = remaining - ? WHERE tamale_id = ?'
+            ).bind(item.qty, item.id).run();
+          }
+        } catch (inventoryError) {
+          console.error('Error updating inventory:', inventoryError);
+          // Continue even if inventory update fails - we don't want to lose the order
+        }
 
         return json({ success: true, orderId: result.meta.last_row_id });
       }
-
-      // Update inventory
-      for (const item of items) {
-        await env.DB.prepare(
-            'UPDATE inventory SET remaining = remaining - ? WHERE tamale_id = ?'
-        ).bind(item.qty, item.id).run();
-}
     }
 
     /* =====================================================
